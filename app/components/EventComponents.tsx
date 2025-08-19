@@ -2165,7 +2165,7 @@ export function EventDetailsPage({
                   </p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-sm text-blue-600">
-                      💡 Use the wallet button in the top right to get started
+                      💡 Click "Connect Wallet" in the header to get started
                     </p>
                   </div>
                 </>

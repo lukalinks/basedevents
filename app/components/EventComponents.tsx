@@ -314,10 +314,30 @@ export function EnhancedEventForm({
         )}
         
         {/* Token Gating Section */}
-        <div>
+        <div className="transition-all duration-300 ease-in-out">
           <TokenGateSetup
-            onTokenGateChange={setTokenGateConfig}
-            initialValues={tokenGateConfig}
+            onTokenGateChange={(config) => {
+              setTokenGateConfig({
+                isTokenGated: config.isTokenGated,
+                requiredTokenAddress: config.requiredTokenAddress || "",
+                requiredTokenBalance: config.requiredTokenBalance || 0,
+                requiredTokenSymbol: config.requiredTokenSymbol || "",
+                requiredTokenName: config.requiredTokenName || "",
+                tokenGateType: config.tokenGateType || 'ERC20',
+                requiredNftCollection: config.requiredNftCollection || "",
+                requiredNftCount: config.requiredNftCount || 1,
+              });
+            }}
+            initialValues={{
+              isTokenGated: tokenGateConfig.isTokenGated,
+              requiredTokenAddress: tokenGateConfig.requiredTokenAddress,
+              requiredTokenBalance: tokenGateConfig.requiredTokenBalance,
+              requiredTokenSymbol: tokenGateConfig.requiredTokenSymbol,
+              requiredTokenName: tokenGateConfig.requiredTokenName,
+              tokenGateType: tokenGateConfig.tokenGateType,
+              requiredNftCollection: tokenGateConfig.requiredNftCollection,
+              requiredNftCount: tokenGateConfig.requiredNftCount,
+            }}
           />
           {errors.tokenAddress && <div className="text-xs text-red-500 mt-1">{errors.tokenAddress}</div>}
           {errors.tokenBalance && <div className="text-xs text-red-500 mt-1">{errors.tokenBalance}</div>}

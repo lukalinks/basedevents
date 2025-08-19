@@ -5,7 +5,7 @@
  * Run this script to test notification functionality
  */
 
-const fetch = require('node-fetch');
+const fetch = require('node-fetch').default;
 
 const BASE_URL = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
 

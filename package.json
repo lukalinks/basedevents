@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:nft": "node test/run-nft-tests.js",
+    "test:nft:component": "npx playwright test test/nft-count-component.test.js",
+    "test:nft:integration": "npx playwright test test/nft-count-integration.test.js",
+    "test:onchain": "npx playwright test test/onchain-ticket-creation.test.js",
+    "test:smart-contracts": "npx playwright test test/smart-contract-integration.test.js",
+    "test:token-gating": "npx playwright test test/token-gating-error-handling.test.js",
+    "test:token-gating-ui": "npx playwright test test/token-gating-ui-error-handling.test.js",
+    "test:all": "npm run test:nft && npm run test:onchain && npm run test:smart-contracts && npm run test:token-gating && npm run test:token-gating-ui"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",

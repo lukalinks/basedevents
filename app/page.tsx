@@ -27,7 +27,7 @@ import {
   EnhancedEventList,
   EnhancedEventDetailsModal,
   EventRegistrationForm,
-
+  UserNFTTicketsCollection,
 } from "./components/EventComponents";
 import {
   createEvent,
@@ -48,6 +48,58 @@ import { useAccount } from "wagmi";
 import ProfileModal from "./components/ProfileModal";
 import { Host, getHostByAddress } from "../lib/hosts";
 import { getUserDisplayInfo } from "../lib/basenames";
+import { getUserNFTTickets } from "../lib/events";
+
+// NFT Count Display Component
+function NFTCountDisplay({ userAddress }: { userAddress: string }) {
+  const [nftCount, setNftCount] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNFTCount = async () => {
+      if (!userAddress) {
+        setNftCount(0);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const tickets = await getUserNFTTickets(userAddress);
+        setNftCount(tickets.length);
+      } catch (error) {
+        console.error('Error fetching NFT count:', error);
+        setNftCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNFTCount();
+  }, [userAddress]);
+
+  if (loading) {
+    return (
+      <div className="mt-3 flex items-center gap-2 text-sm text-[var(--app-foreground-muted)]">
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+        <span>Loading NFT collection...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg border border-purple-200">
+        <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+        <span className="font-semibold text-purple-700">
+          {nftCount} NFT{nftCount !== 1 ? 's' : ''} collected from events
+        </span>
+      </div>
+    </div>
+  );
+}
 
 // Add Event type for local state
 
@@ -174,6 +226,7 @@ function ProfilePage({
                 <div className="text-sm text-[var(--app-foreground-muted)] break-all font-mono bg-[var(--app-gray)] px-3 py-2 rounded-lg">
                   {address}
                 </div>
+                <NFTCountDisplay userAddress={address} />
                 {profile?.bio && (
                   <div className="mt-4 bg-[var(--app-gray)] rounded-xl p-4 border border-[var(--app-card-border)]">
                     <p className="text-[var(--app-foreground-muted)] leading-relaxed">{profile.bio}</p>
@@ -305,6 +358,11 @@ function ProfilePage({
           showSearch={false}
         />
       </div>
+
+        {/* NFT Tickets Collection */}
+        <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
+          <UserNFTTicketsCollection userAddress={address} />
+        </div>
       </div>
       
       {/* Profile Modal */}
@@ -586,11 +644,103 @@ export default function App() {
   };
 
   // Handle registration form submission
-  const handleRegistrationSubmit = async (userDetails: {name: string, email: string, phone?: string, bio?: string}) => {
+  const handleRegistrationSubmit = async (userDetails: {name: string, email: string, phone?: string, bio?: string}, onchainFromChild?: { paymentTxHash?: `0x${string}` }) => {
     if (!showRegistrationForm || !address) return;
     
     try {
-      await registerForEvent(showRegistrationForm.id, address, userDetails);
+      // If paid event, initiate Base USDC transfer first and store tx hash
+      let onchain: { paymentTxHash?: `0x${string}`, ticketNft?: { contract: `0x${string}`, tokenId: string, txHash: `0x${string}` } } | undefined
+      if (showRegistrationForm.isPaid && showRegistrationForm.priceUSDC) {
+        if (onchainFromChild?.paymentTxHash) {
+          onchain = { paymentTxHash: onchainFromChild.paymentTxHash, ticketNft: undefined }
+        } else {
+        const { BASE_USDC_ADDRESS } = await import('@/lib/blockchain-base')
+        const { ethers } = await import('ethers')
+
+        if (typeof window === 'undefined' || !(window as any).ethereum) {
+          throw new Error('Wallet not available')
+        }
+
+        const ethereum = (window as any).ethereum
+        const baseChainHex = '0x2105' // 8453
+        try {
+          const current = await ethereum.request({ method: 'eth_chainId' })
+          if (current?.toLowerCase() !== baseChainHex) {
+            await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: baseChainHex }] })
+          }
+        } catch (e) {
+          // Best-effort; user may already be on Base
+        }
+
+        const provider = new ethers.providers.Web3Provider(ethereum)
+        const signer = provider.getSigner()
+
+        const erc20Abi = [
+          'function transfer(address to, uint256 amount) returns (bool)'
+        ]
+
+        const to = showRegistrationForm.creator
+        const amount = ethers.BigNumber.from(Math.round(showRegistrationForm.priceUSDC * 1_000_000))
+        const usdc = new ethers.Contract(BASE_USDC_ADDRESS, erc20Abi, signer)
+        const tx = await usdc.transfer(to, amount)
+        onchain = { paymentTxHash: tx.hash as `0x${string}`, ticketNft: undefined }
+        }
+      } else {
+        // Free event: optionally log registration onchain if logger contract is configured
+        const loggerAddress = process.env.NEXT_PUBLIC_ONCHAIN_REG_LOGGER as `0x${string}` | undefined
+        if (loggerAddress) {
+          if (typeof window === 'undefined' || !(window as any).ethereum) {
+            throw new Error('Wallet not available')
+          }
+          const ethereum = (window as any).ethereum
+          const baseChainHex = '0x2105'
+          try {
+            const current = await ethereum.request({ method: 'eth_chainId' })
+            if (current?.toLowerCase() !== baseChainHex) {
+              await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: baseChainHex }] })
+            }
+          } catch {}
+
+          const { ethers } = await import('ethers')
+          const provider = new ethers.providers.Web3Provider(ethereum)
+          const signer = provider.getSigner()
+          const abi = [
+            'function register(bytes32 eventIdHash, address attendee) external'
+          ]
+          const contract = new ethers.Contract(loggerAddress, abi, signer)
+          const eventIdHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(showRegistrationForm.id))
+          const tx = await contract.register(eventIdHash, address)
+          onchain = { paymentTxHash: tx.hash as `0x${string}`, ticketNft: undefined }
+        }
+      }
+
+      // Optional: mint free NFT ticket if configured
+      if (!showRegistrationForm.isPaid) {
+        const ticketContract = process.env.NEXT_PUBLIC_TICKET_NFT as `0x${string}` | undefined
+        if (ticketContract) {
+          try {
+            const { ethers } = await import('ethers')
+            const ethereum = (window as any).ethereum
+            const provider = new ethers.providers.Web3Provider(ethereum)
+            const signer = provider.getSigner()
+            const abi = [
+              'function mintTicket(address to, uint256 eventId, string tokenURI) external returns (uint256)'
+            ]
+            const contract = new ethers.Contract(ticketContract, abi, signer)
+            const tokenUri = '' // Optional: point to IPFS ticket metadata
+            const eventNumericId = Math.abs([...showRegistrationForm.id].reduce((acc, c) => acc + c.charCodeAt(0), 0))
+            const tx = await contract.mintTicket(address, eventNumericId, tokenUri)
+            onchain = {
+              ...onchain,
+              ticketNft: { contract: ticketContract, tokenId: '0', txHash: tx.hash as `0x${string}` }
+            }
+          } catch (e) {
+            console.warn('Ticket NFT mint skipped/failed:', e)
+          }
+        }
+      }
+
+      await registerForEvent(showRegistrationForm.id, address, userDetails, onchain);
       
       // Refresh events
       const updatedEvents = await getAllEvents();
@@ -608,7 +758,7 @@ export default function App() {
       setRefreshTrigger(prev => prev + 1);
       
       // Show success message
-      const successMessage = `🎉 Registration confirmed! You're all set for "${showRegistrationForm.title}". Check your email for details.`;
+      const successMessage = `🎉 Registration confirmed! You're all set for "${showRegistrationForm.title}". A receipt has been saved${onchain?.paymentTxHash ? ' (tx: ' + onchain.paymentTxHash.slice(0,10) + '...)' : ''}.`;
       
       // Send Farcaster notification to event creator
       try {

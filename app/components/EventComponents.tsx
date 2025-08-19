@@ -29,6 +29,8 @@ import { uploadEventImage } from "@/lib/imageUpload";
 import { supabase } from "@/lib/supabaseClient";
 import { Transaction, TransactionButton, TransactionStatus } from '@coinbase/onchainkit/transaction';
 import { encodeFunctionData, parseUnits } from 'viem';
+import { TokenGateSetup, TokenGateStatus, TokenGateBadge, TokenRequirementDisplay } from './TokenGating';
+import { OnchainEventBadges, OnchainPaymentStatus, OnchainNFTStatus, OnchainActivitySummary } from './OnchainStatusIndicators';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base USDC address
@@ -78,6 +80,19 @@ export function EnhancedEventForm({
   const [imageUploading, setImageUploading] = useState(false);
   const [isPaid, setIsPaid] = useState(initialEvent?.isPaid || false);
   const [priceUSDC, setPriceUSDC] = useState(initialEvent?.priceUSDC?.toString() || "");
+  
+  // Token gating state
+  const [tokenGateConfig, setTokenGateConfig] = useState({
+    isTokenGated: initialEvent?.isTokenGated || false,
+    requiredTokenAddress: initialEvent?.requiredTokenAddress || "",
+    requiredTokenBalance: initialEvent?.requiredTokenBalance || 0,
+    requiredTokenSymbol: initialEvent?.requiredTokenSymbol || "",
+    requiredTokenName: initialEvent?.requiredTokenName || "",
+    tokenGateType: initialEvent?.tokenGateType || ('ERC20' as const),
+    requiredNftCollection: initialEvent?.requiredNftCollection || "",
+    requiredNftCount: initialEvent?.requiredNftCount || 1,
+  });
+  
   // Online/Physical mode and platform
   const isOnlineInitial = (initialEvent?.location || "").toLowerCase().startsWith('online');
   const extractedPlatform = (() => {
@@ -99,6 +114,20 @@ export function EnhancedEventForm({
     }
     if (isPaid && (!priceUSDC || isNaN(Number(priceUSDC)) || Number(priceUSDC) <= 0)) {
       newErrors.priceUSDC = "Enter a valid price in USDC";
+    }
+    // Token gating validation
+    if (tokenGateConfig.isTokenGated) {
+      if (!tokenGateConfig.requiredTokenAddress?.trim()) {
+        newErrors.tokenAddress = "Token address is required";
+      } else if (!/^0x[a-fA-F0-9]{40}$/.test(tokenGateConfig.requiredTokenAddress)) {
+        newErrors.tokenAddress = "Invalid token address format";
+      }
+      if (!tokenGateConfig.requiredTokenBalance || tokenGateConfig.requiredTokenBalance <= 0) {
+        newErrors.tokenBalance = "Required balance must be greater than 0";
+      }
+      if (!tokenGateConfig.requiredTokenSymbol?.trim()) {
+        newErrors.tokenSymbol = "Token symbol is required";
+      }
     }
     return newErrors;
   };
@@ -179,6 +208,15 @@ export function EnhancedEventForm({
         imageUrl: imageUrl || undefined,
         isPaid,
         priceUSDC: isPaid ? Number(priceUSDC) : undefined,
+        // Token gating fields
+        isTokenGated: tokenGateConfig.isTokenGated,
+        requiredTokenAddress: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredTokenAddress : undefined,
+        requiredTokenBalance: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredTokenBalance : undefined,
+        requiredTokenSymbol: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredTokenSymbol : undefined,
+        requiredTokenName: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredTokenName : undefined,
+        tokenGateType: tokenGateConfig.isTokenGated ? tokenGateConfig.tokenGateType : undefined,
+        requiredNftCollection: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredNftCollection : undefined,
+        requiredNftCount: tokenGateConfig.isTokenGated ? tokenGateConfig.requiredNftCount : undefined,
       };
 
       console.log('Form submitting event data:', eventData);
@@ -274,6 +312,18 @@ export function EnhancedEventForm({
             {errors.priceUSDC && <div className="text-xs text-red-500 mt-1">{errors.priceUSDC}</div>}
           </div>
         )}
+        
+        {/* Token Gating Section */}
+        <div>
+          <TokenGateSetup
+            onTokenGateChange={setTokenGateConfig}
+            initialValues={tokenGateConfig}
+          />
+          {errors.tokenAddress && <div className="text-xs text-red-500 mt-1">{errors.tokenAddress}</div>}
+          {errors.tokenBalance && <div className="text-xs text-red-500 mt-1">{errors.tokenBalance}</div>}
+          {errors.tokenSymbol && <div className="text-xs text-red-500 mt-1">{errors.tokenSymbol}</div>}
+        </div>
+        
         <div>
           <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">Event Image</label>
           <div className="relative">
@@ -875,23 +925,7 @@ export function EnhancedEventList({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-[var(--app-foreground)] text-lg">{event.title}</h3>
-                    {event.status === 'cancelled' ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 ml-2">
-                        CANCELLED
-                      </span>
-                    ) : event.isPaid ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 ml-2">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#2775CA" />
-                          <text x="12" y="16" textAnchor="middle" fontSize="10" fill="white">$</text>
-                        </svg>
-                        {event.priceUSDC ? `${event.priceUSDC} USDC` : "Paid"}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 ml-2">
-                        Free
-                      </span>
-                    )}
+                    <OnchainEventBadges event={event} size="sm" variant="compact" />
                     {status === 'soon' && (
                       <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">Soon</span>
                     )}
@@ -1220,15 +1254,7 @@ export function EnhancedEventDetailsModal({
         <div className="bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-card-bg)]/95 border-b border-[var(--app-card-border)] p-6 flex justify-between items-center flex-shrink-0">
           <div className="flex-1 min-w-0 flex items-center gap-3">
             <h2 className="text-2xl font-bold text-[var(--app-foreground)] truncate">{event.title}</h2>
-            {event.isPaid && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#2775CA" />
-                  <text x="12" y="16" textAnchor="middle" fontSize="10" fill="white">$</text>
-                </svg>
-                {event.priceUSDC ? `${event.priceUSDC} USDC` : "Paid"}
-              </span>
-            )}
+            <OnchainEventBadges event={event} size="md" variant="default" />
           </div>
           <div className="flex items-center gap-2">
           <button
@@ -1394,6 +1420,12 @@ export function EnhancedEventDetailsModal({
                 <p className="text-[var(--app-foreground-muted)] leading-relaxed whitespace-pre-wrap">{event.description}</p>
               </div>
             )}
+            
+            {/* Token Requirement Display */}
+            <TokenRequirementDisplay event={event} showDetails={true} />
+            
+            {/* Onchain Activity Summary */}
+            <OnchainActivitySummary event={event} userAddress={userAddress} />
             
             {event.tags.length > 0 && (
               <div>
@@ -1563,7 +1595,7 @@ export function EventRegistrationForm({
   onCancelAction 
 }: { 
   event: Event
-  onRegisterAction: (userDetails: {name: string, email: string, phone?: string, bio?: string}) => void
+  onRegisterAction: (userDetails: {name: string, email: string, phone?: string, bio?: string}, onchain?: { paymentTxHash?: `0x${string}` }) => void
   onCancelAction: () => void
 }) {
   const [name, setName] = useState("")
@@ -1578,6 +1610,7 @@ export function EventRegistrationForm({
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [paymentTx, setPaymentTx] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [tokenVerified, setTokenVerified] = useState(!event.isTokenGated); // Start as true if no token gating
 
   // OnchainKit payment call for paid events using viem
   const paymentCalls: { to: `0x${string}`; data?: `0x${string}`; value?: bigint }[] = useMemo(() => {
@@ -1621,14 +1654,24 @@ export function EventRegistrationForm({
     setErrors(validation)
     if (Object.keys(validation).length > 0) return
     
+    // Check token verification for token-gated events
+    if (event.isTokenGated && !tokenVerified) {
+      setErrors({ tokenVerification: 'Please verify token requirements before registering' });
+      return;
+    }
+    
     setLoading(true)
     try {
+      const onchain: { paymentTxHash?: `0x${string}` } = {}
+      if (event.isPaid && paymentTx) {
+        onchain.paymentTxHash = paymentTx as `0x${string}`
+      }
       await onRegisterAction({
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
         bio: bio.trim() || undefined
-      })
+      }, onchain)
     } catch (error) {
       console.error('Registration error:', error)
       setErrors({ general: 'Registration failed. Please try again.' })
@@ -1659,27 +1702,59 @@ export function EventRegistrationForm({
             Please provide your details to complete your event registration
           </p>
         </div>
+        
+        {/* Token Gating Verification */}
+        {event.isTokenGated && (
+          <div className="mb-6">
+            <TokenGateStatus 
+              event={event}
+              userAddress={address}
+              onVerificationComplete={(passed) => {
+                setTokenVerified(passed);
+                if (!passed) {
+                  setErrors(prev => ({ ...prev, tokenVerification: 'Token requirements not met' }));
+                } else {
+                  setErrors(prev => {
+                    const { tokenVerification, ...rest } = prev;
+                    return rest;
+                  });
+                }
+              }}
+            />
+          </div>
+        )}
+        
         {event.isPaid && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-200 rounded-xl">
+          <div className="mb-6 onchain-card rounded-xl p-6 border-2" style={{
+            background: 'var(--app-payment-bg)',
+            borderColor: 'var(--app-payment-light)'
+          }}>
             <div className="text-center mb-4">
-            <div className="flex items-center gap-2 justify-center mb-2">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <text x="12" y="16" textAnchor="middle" fontSize="10" fill="currentColor">$</text>
+              <div className="w-16 h-16 payment-gradient rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <text x="12" y="16" textAnchor="middle" fontSize="12" fill="white">$</text>
                 </svg>
-                <span className="font-bold text-lg text-yellow-800">{event.priceUSDC} USDC</span>
               </div>
-              <p className="text-sm text-yellow-700 mb-3">
-                Payment required to complete registration
+              <h3 className="font-bold text-2xl mb-2" style={{color: 'var(--app-payment)'}}>
+                {event.priceUSDC} USDC
+              </h3>
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                Payment required to complete registration on Base network
               </p>
               
               {paymentConfirmed ? (
-                <div className="flex items-center justify-center gap-2 text-green-700 bg-green-100 rounded-lg p-3 mb-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-                  <span className="font-semibold">Payment Confirmed!</span>
-            </div>
+                <div className="flex items-center justify-center gap-3 rounded-lg p-4 border border-green-200 bg-green-50 mb-4">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-bold text-green-800">Payment Confirmed!</div>
+                    <div className="text-sm text-green-700">USDC payment successful on Base</div>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {!isBase && (
@@ -1801,7 +1876,7 @@ export function EventRegistrationForm({
           <div className="flex space-x-4 pt-2">
             <button
               type="submit"
-              disabled={event.isPaid ? !paymentConfirmed || loading : loading}
+              disabled={loading || (event.isPaid && !paymentConfirmed) || (event.isTokenGated && !tokenVerified)}
               className="flex-1 bg-[var(--app-accent)] text-white py-4 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--app-accent-hover)] transition-all font-semibold flex items-center justify-center gap-2 shadow-lg"
             >
               {loading ? (
@@ -2234,6 +2309,12 @@ export function EventDetailsPage({
             </div>
           )}
           
+          {/* Token Requirement Display */}
+          <TokenRequirementDisplay event={event} showDetails={true} />
+          
+          {/* Onchain Activity Summary */}
+          <OnchainActivitySummary event={event} userAddress={userAddress} />
+          
           {event.tags.length > 0 && (
             <div>
               <h3 className="font-bold text-lg mb-3 text-[var(--app-foreground)]">Tags</h3>
@@ -2615,4 +2696,204 @@ export function EventAttendeesList({
       </div>
     </div>
   )
+}
+
+// User NFT Tickets Collection Component
+export function UserNFTTicketsCollection({ 
+  userAddress 
+}: { 
+  userAddress?: string 
+}) {
+  const [nftTickets, setNftTickets] = useState<EventRegistration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userAddress) {
+      setNftTickets([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchNFTTickets = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { getUserNFTTickets } = await import('@/lib/events');
+        const tickets = await getUserNFTTickets(userAddress);
+        setNftTickets(tickets);
+      } catch (err) {
+        console.error('Error fetching NFT tickets:', err);
+        setError('Failed to load NFT tickets');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNFTTickets();
+  }, [userAddress]);
+
+  if (!userAddress) {
+    return (
+      <div className="onchain-card rounded-xl p-8 text-center border-2" style={{
+        background: 'var(--app-nft-bg)',
+        borderColor: 'var(--app-nft-light)'
+      }}>
+        <div className="w-20 h-20 nft-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <Icon name="star" size="lg" className="text-white drop-shadow-sm" />
+        </div>
+        <h3 className="text-xl font-bold mb-2" style={{color: 'var(--app-nft)'}}>Connect Wallet</h3>
+        <p className="text-sm font-medium text-gray-600 mb-4">Connect your wallet to view your collected NFT tickets</p>
+        <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+          <p className="text-xs text-gray-700">Your event tickets will appear here as beautiful NFT collectibles</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="onchain-card rounded-xl p-8 text-center border" style={{
+        background: 'var(--app-nft-bg)',
+        borderColor: 'var(--app-nft-light)'
+      }}>
+        <div className="w-16 h-16 nft-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <h3 className="text-lg font-bold mb-2" style={{color: 'var(--app-nft)'}}>Loading NFT Collection</h3>
+        <p className="text-sm font-medium text-gray-600">Fetching your event tickets...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="onchain-card rounded-xl p-8 text-center border" style={{
+        background: 'var(--app-error-bg)',
+        borderColor: 'var(--app-error-light)'
+      }}>
+        <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <Icon name="users" size="lg" className="text-white" />
+        </div>
+        <h3 className="text-lg font-bold mb-2" style={{color: 'var(--app-error)'}}>Error Loading NFT Collection</h3>
+        <p className="text-sm font-medium text-gray-600 mb-4">{error}</p>
+        <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+          <p className="text-xs text-gray-700">Please try refreshing the page or check your connection</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (nftTickets.length === 0) {
+    return (
+      <div className="onchain-card rounded-xl p-8 text-center border" style={{
+        background: 'var(--app-nft-bg)',
+        borderColor: 'var(--app-nft-light)'
+      }}>
+        <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <Icon name="star" size="lg" className="text-gray-400" />
+        </div>
+        <h3 className="text-xl font-bold mb-2" style={{color: 'var(--app-nft)'}}>No NFT Tickets Yet</h3>
+        <p className="text-sm font-medium text-gray-600 mb-4">
+          Register for events that offer NFT tickets to start your collection!
+        </p>
+        <div className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/30">
+          <p className="text-xs text-gray-700 mb-2 font-medium">💡 Tip:</p>
+          <p className="text-xs text-gray-700">
+            Many events on BasedEvents offer beautiful NFT tickets as collectibles. 
+            Look for events with the NFT badge and start collecting today!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 nft-gradient rounded-xl flex items-center justify-center shadow-lg">
+            <Icon name="star" size="md" className="text-white drop-shadow-sm" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold" style={{color: 'var(--app-nft)'}}>My NFT Collection</h2>
+            <p className="text-sm text-gray-600">{nftTickets.length} event tickets collected</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {nftTickets.map((ticket) => (
+          <div key={ticket.id} className="bg-[var(--app-card-bg)] border-2 border-[var(--app-card-border)] rounded-xl p-4 hover:border-[var(--app-accent)] transition-all">
+            {ticket.event?.imageUrl && (
+              <div className="w-full h-32 bg-[var(--app-gray)] rounded-lg mb-3 overflow-hidden">
+                <img 
+                  src={ticket.event.imageUrl} 
+                  alt={ticket.event.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <h3 className="font-semibold text-[var(--app-foreground)] line-clamp-2">
+                {ticket.event?.title || 'Unknown Event'}
+              </h3>
+              
+              <div className="flex items-center gap-2 text-sm text-[var(--app-foreground-muted)]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{ticket.event?.date}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-[var(--app-foreground-muted)]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="line-clamp-1">{ticket.event?.location}</span>
+              </div>
+              
+              {ticket.ticketNft && (
+                <div className="pt-2 border-t border-[var(--app-card-border)]">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[var(--app-foreground-muted)]">Token ID:</span>
+                    <span className="font-mono text-[var(--app-accent)]">{ticket.ticketNft.tokenId}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mt-2">
+                    <a
+                      href={`https://basescan.org/tx/${ticket.ticketNft.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-[var(--app-accent)] hover:underline"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View on BaseScan
+                    </a>
+                    
+                    <a
+                      href={`https://basescan.org/token/${ticket.ticketNft.contract}?a=${ticket.ticketNft.tokenId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-[var(--app-accent)] hover:underline"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View NFT
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

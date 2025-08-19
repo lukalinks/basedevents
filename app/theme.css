@@ -16,6 +16,54 @@
   --app-gray-dark: #e0e0e0;
   --app-card-bg: rgba(255, 255, 255, 0.4);
   --app-card-border: rgba(0, 0, 0, 0.1);
+  
+  /* Onchain Feature Colors */
+  --app-success: #10b981;
+  --app-success-bg: #d1fae5;
+  --app-success-light: #a7f3d0;
+  --app-warning: #f59e0b;
+  --app-warning-bg: #fef3c7;
+  --app-warning-light: #fde68a;
+  --app-error: #ef4444;
+  --app-error-bg: #fee2e2;
+  --app-error-light: #fca5a5;
+  
+  /* Blockchain & Crypto Colors */
+  --app-crypto: #f7931a;
+  --app-crypto-bg: rgba(247, 147, 26, 0.1);
+  --app-crypto-light: rgba(247, 147, 26, 0.2);
+  --app-base: #0052ff;
+  --app-base-bg: rgba(0, 82, 255, 0.1);
+  --app-base-light: rgba(0, 82, 255, 0.2);
+  
+  /* Token Gating Theme */
+  --app-token-gate: #8b5cf6;
+  --app-token-gate-bg: rgba(139, 92, 246, 0.1);
+  --app-token-gate-light: rgba(139, 92, 246, 0.2);
+  --app-token-gate-dark: #7c3aed;
+  
+  /* Payment Theme */
+  --app-payment: #22c55e;
+  --app-payment-bg: rgba(34, 197, 94, 0.1);
+  --app-payment-light: rgba(34, 197, 94, 0.2);
+  --app-payment-dark: #16a34a;
+  
+  /* NFT Theme */
+  --app-nft: #ec4899;
+  --app-nft-bg: rgba(236, 72, 153, 0.1);
+  --app-nft-light: rgba(236, 72, 153, 0.2);
+  --app-nft-dark: #db2777;
+  
+  /* Glass Effects */
+  --app-glass-bg: rgba(255, 255, 255, 0.25);
+  --app-glass-border: rgba(255, 255, 255, 0.18);
+  --app-glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  
+  /* Enhanced Shadows */
+  --app-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --app-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --app-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --app-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,6 +79,30 @@
     --app-gray-dark: #2e2e2e;
     --app-card-bg: rgba(17, 17, 17, 0.4);
     --app-card-border: rgba(115, 115, 115, 0.5);
+    
+    /* Dark mode onchain colors */
+    --app-success-bg: rgba(16, 185, 129, 0.15);
+    --app-success-light: rgba(16, 185, 129, 0.25);
+    --app-warning-bg: rgba(245, 158, 11, 0.15);
+    --app-warning-light: rgba(245, 158, 11, 0.25);
+    --app-error-bg: rgba(239, 68, 68, 0.15);
+    --app-error-light: rgba(239, 68, 68, 0.25);
+    
+    --app-crypto-bg: rgba(247, 147, 26, 0.15);
+    --app-crypto-light: rgba(247, 147, 26, 0.25);
+    --app-base-bg: rgba(0, 82, 255, 0.15);
+    --app-base-light: rgba(0, 82, 255, 0.25);
+    
+    --app-token-gate-bg: rgba(139, 92, 246, 0.15);
+    --app-token-gate-light: rgba(139, 92, 246, 0.25);
+    --app-payment-bg: rgba(34, 197, 94, 0.15);
+    --app-payment-light: rgba(34, 197, 94, 0.25);
+    --app-nft-bg: rgba(236, 72, 153, 0.15);
+    --app-nft-light: rgba(236, 72, 153, 0.25);
+    
+    --app-glass-bg: rgba(17, 17, 17, 0.25);
+    --app-glass-border: rgba(255, 255, 255, 0.1);
+    --app-glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -134,4 +206,67 @@ body {
   100% {
     opacity: 0;
   }
+}
+
+/* Onchain UI Utility Classes */
+.onchain-card {
+  background: var(--app-glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--app-glass-border);
+  box-shadow: var(--app-glass-shadow);
+}
+
+.token-gate-gradient {
+  background: linear-gradient(135deg, var(--app-token-gate) 0%, var(--app-token-gate-dark) 100%);
+}
+
+.payment-gradient {
+  background: linear-gradient(135deg, var(--app-payment) 0%, var(--app-payment-dark) 100%);
+}
+
+.nft-gradient {
+  background: linear-gradient(135deg, var(--app-nft) 0%, var(--app-nft-dark) 100%);
+}
+
+.crypto-gradient {
+  background: linear-gradient(135deg, var(--app-crypto) 0%, #e67e22 100%);
+}
+
+.onchain-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--app-accent), 0 0 10px var(--app-accent), 0 0 15px var(--app-accent);
+  }
+  50% {
+    box-shadow: 0 0 10px var(--app-accent), 0 0 20px var(--app-accent), 0 0 30px var(--app-accent);
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.blockchain-border {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--app-background), var(--app-background)) padding-box,
+              linear-gradient(45deg, var(--app-accent), var(--app-token-gate), var(--app-payment)) border-box;
 }

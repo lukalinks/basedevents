@@ -58,6 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         userBio: r.user_bio,
         registeredAt: r.registered_at,
         status: r.status,
+        paymentTxHash: r.payment_tx_hash,
       })),
       eventRow.title
     )

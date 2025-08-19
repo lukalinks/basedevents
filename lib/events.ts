@@ -20,6 +20,15 @@ export interface Event {
   // Paid event fields
   isPaid?: boolean;
   priceUSDC?: number;
+  // Token gating fields
+  isTokenGated?: boolean;
+  requiredTokenAddress?: string;
+  requiredTokenBalance?: number;
+  requiredTokenSymbol?: string;
+  requiredTokenName?: string;
+  tokenGateType?: 'ERC20' | 'ERC721' | 'ERC1155';
+  requiredNftCollection?: string;
+  requiredNftCount?: number;
 }
 
 export interface EventComment {
@@ -41,6 +50,45 @@ export interface EventRegistration {
   userBio?: string
   registeredAt: string
   status: 'confirmed' | 'pending' | 'cancelled'
+  paymentTxHash?: string
+  ticketNft?: {
+    contract: string
+    tokenId: string
+    txHash: string
+  }
+  event?: Event // Optional event details when fetched with join
+}
+
+export interface TokenVerification {
+  id: string
+  eventId: string
+  userAddress: string
+  tokenAddress: string
+  tokenBalance: number
+  verificationStatus: 'passed' | 'failed' | 'pending'
+  verifiedAt: string
+}
+
+export interface TokenRequirement {
+  type: 'ERC20' | 'ERC721' | 'ERC1155'
+  contractAddress: `0x${string}`
+  requiredBalance: string
+  symbol?: string
+  name?: string
+  tokenId?: string // For ERC1155
+}
+
+export interface TokenGateResult {
+  passed: boolean
+  userBalance: string
+  requiredBalance: string
+  tokenInfo?: {
+    symbol: string
+    name: string
+    decimals: number
+    type?: 'ERC20' | 'ERC721' | 'ERC1155'
+  }
+  error?: string
 }
 
 // Create a new event
@@ -65,6 +113,15 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'u
     updated_at: new Date().toISOString(),
     is_paid: eventData.isPaid,
     price_usdc: eventData.priceUSDC,
+    // Token gating fields
+    is_token_gated: eventData.isTokenGated,
+    required_token_address: eventData.requiredTokenAddress,
+    required_token_balance: eventData.requiredTokenBalance,
+    required_token_symbol: eventData.requiredTokenSymbol,
+    required_token_name: eventData.requiredTokenName,
+    token_gate_type: eventData.tokenGateType,
+    required_nft_collection: eventData.requiredNftCollection,
+    required_nft_count: eventData.requiredNftCount,
   }
 
   // Only add image_url if it exists to avoid database errors
@@ -180,6 +237,11 @@ export async function registerForEvent(
     email: string
     phone?: string
     bio?: string
+  },
+  onchain?: {
+    // If provided, we store tx hash and mark confirmed. If missing and event is paid, caller must handle payment first
+    paymentTxHash?: `0x${string}`,
+    ticketNft?: { contract: `0x${string}`, tokenId: string, txHash: `0x${string}` }
   }
 ): Promise<EventRegistration> {
   console.log('🔄 Starting registration process:', { eventId, userAddress, userDetails });
@@ -207,7 +269,7 @@ export async function registerForEvent(
   }
 
   // Create registration record
-  const registrationData = {
+  const registrationData: any = {
     event_id: eventId,
     user_address: userAddress,
     user_name: userDetails.name,
@@ -216,6 +278,16 @@ export async function registerForEvent(
       user_bio: userDetails.bio || null,
     status: 'confirmed'
   }
+
+    if (onchain?.paymentTxHash) {
+      registrationData.payment_tx_hash = onchain.paymentTxHash
+      registrationData.chain_id = 8453 // Base mainnet
+    }
+    if (onchain?.ticketNft) {
+      registrationData.ticket_nft_contract = onchain.ticketNft.contract
+      registrationData.ticket_token_id = onchain.ticketNft.tokenId
+      registrationData.ticket_nft_tx_hash = onchain.ticketNft.txHash
+    }
 
     console.log('📝 Creating database registration with data:', registrationData);
 
@@ -425,6 +497,15 @@ export async function updateEvent(eventId: string, updates: Partial<Omit<Event, 
   if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl
   if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
   if (updates.priceUSDC !== undefined) dbUpdates.price_usdc = updates.priceUSDC;
+  // Token gating fields
+  if (updates.isTokenGated !== undefined) dbUpdates.is_token_gated = updates.isTokenGated;
+  if (updates.requiredTokenAddress !== undefined) dbUpdates.required_token_address = updates.requiredTokenAddress;
+  if (updates.requiredTokenBalance !== undefined) dbUpdates.required_token_balance = updates.requiredTokenBalance;
+  if (updates.requiredTokenSymbol !== undefined) dbUpdates.required_token_symbol = updates.requiredTokenSymbol;
+  if (updates.requiredTokenName !== undefined) dbUpdates.required_token_name = updates.requiredTokenName;
+  if (updates.tokenGateType !== undefined) dbUpdates.token_gate_type = updates.tokenGateType;
+  if (updates.requiredNftCollection !== undefined) dbUpdates.required_nft_collection = updates.requiredNftCollection;
+  if (updates.requiredNftCount !== undefined) dbUpdates.required_nft_count = updates.requiredNftCount;
 
   const { data, error } = await supabase
     .from('events')
@@ -481,7 +562,11 @@ export function generateEventRegistrationsCSV(registrations: EventRegistration[]
     'Wallet Address',
     'Bio',
     'Registration Date',
-    'Status'
+    'Status',
+    'Payment Tx Hash',
+    'Ticket NFT Contract',
+    'Ticket Token ID',
+    'Ticket NFT Tx Hash'
   ];
 
   // Convert registrations to CSV rows
@@ -492,7 +577,11 @@ export function generateEventRegistrationsCSV(registrations: EventRegistration[]
     reg.userAddress,
     reg.userBio || 'N/A',
     new Date(reg.registeredAt).toLocaleDateString() + ' ' + new Date(reg.registeredAt).toLocaleTimeString(),
-    reg.status
+    reg.status,
+    reg.paymentTxHash || 'N/A',
+    reg.ticketNft?.contract || 'N/A',
+    reg.ticketNft?.tokenId || 'N/A',
+    reg.ticketNft?.txHash || 'N/A'
   ]);
 
   // Combine headers and rows
@@ -621,6 +710,15 @@ function transformEventFromDB(dbEvent: any): Event {
     imageUrl: dbEvent.image_url,
     isPaid: dbEvent.is_paid,
     priceUSDC: dbEvent.price_usdc,
+    // Token gating fields
+    isTokenGated: dbEvent.is_token_gated,
+    requiredTokenAddress: dbEvent.required_token_address,
+    requiredTokenBalance: dbEvent.required_token_balance,
+    requiredTokenSymbol: dbEvent.required_token_symbol,
+    requiredTokenName: dbEvent.required_token_name,
+    tokenGateType: dbEvent.token_gate_type,
+    requiredNftCollection: dbEvent.required_nft_collection,
+    requiredNftCount: dbEvent.required_nft_count,
   }
 }
 
@@ -635,7 +733,13 @@ function transformRegistrationFromDB(registration: any): EventRegistration {
     userPhone: registration.user_phone,
     userBio: registration.user_bio,
     registeredAt: registration.registered_at,
-    status: registration.status
+    status: registration.status,
+    paymentTxHash: registration.payment_tx_hash || undefined,
+    ticketNft: registration.ticket_nft_contract && registration.ticket_nft_tx_hash ? {
+      contract: registration.ticket_nft_contract,
+      tokenId: String(registration.ticket_token_id ?? ''),
+      txHash: registration.ticket_nft_tx_hash
+    } : undefined
   }
 }
 
@@ -860,5 +964,86 @@ export async function getHostSignupCount(hostAddress: string): Promise<number> {
   } catch (error) {
     console.error('Failed to get host signup count:', error);
     return 0;
+  }
+}
+
+// Get all NFT tickets a user holds across different events
+export async function getUserNFTTickets(userAddress: string): Promise<EventRegistration[]> {
+  if (!userAddress) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('event_registrations')
+      .select(`
+        *,
+        events (
+          id,
+          title,
+          date,
+          time,
+          location,
+          image_url
+        )
+      `)
+      .eq('user_address', userAddress)
+      .not('ticket_nft_contract', 'is', null)
+      .not('ticket_nft_tx_hash', 'is', null)
+      .order('registered_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching user NFT tickets:', error);
+      throw error;
+    }
+
+    if (!data) return [];
+
+    return data.map(registration => ({
+      ...transformRegistrationFromDB(registration),
+      event: registration.events ? transformEventFromDB(registration.events) : null
+    }));
+  } catch (error) {
+    console.error('Error fetching user NFT tickets:', error);
+    throw error;
+  }
+}
+
+// Get NFT ticket details for a specific registration
+export async function getNFTTicketDetails(registrationId: string): Promise<EventRegistration | null> {
+  try {
+    const { data, error } = await supabase
+      .from('event_registrations')
+      .select(`
+        *,
+        events (
+          id,
+          title,
+          date,
+          time,
+          location,
+          image_url,
+          creator
+        )
+      `)
+      .eq('id', registrationId)
+      .not('ticket_nft_contract', 'is', null)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No NFT ticket found
+      }
+      console.error('Error fetching NFT ticket details:', error);
+      throw error;
+    }
+
+    if (!data) return null;
+
+    return {
+      ...transformRegistrationFromDB(data),
+      event: data.events ? transformEventFromDB(data.events) : null
+    };
+  } catch (error) {
+    console.error('Error fetching NFT ticket details:', error);
+    throw error;
   }
 }

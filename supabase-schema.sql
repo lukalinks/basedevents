@@ -20,7 +20,16 @@ CREATE TABLE IF NOT EXISTS events (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   image_url TEXT,
   is_paid BOOLEAN DEFAULT FALSE,
-  price_usdc DECIMAL(10,2)
+  price_usdc DECIMAL(10,2),
+  -- Token gating fields
+  is_token_gated BOOLEAN DEFAULT FALSE,
+  required_token_address VARCHAR(255),
+  required_token_balance DECIMAL(20,8),
+  required_token_symbol VARCHAR(10),
+  required_token_name VARCHAR(255),
+  token_gate_type VARCHAR(20) DEFAULT 'ERC20',
+  required_nft_collection VARCHAR(255),
+  required_nft_count INTEGER DEFAULT 1
 );
 
 -- Create event_comments table
@@ -42,6 +51,11 @@ CREATE TABLE IF NOT EXISTS event_registrations (
   user_email VARCHAR(255) NOT NULL,
   user_phone VARCHAR(50),
   user_bio TEXT,
+  payment_tx_hash VARCHAR(66),
+  chain_id INTEGER,
+  ticket_nft_tx_hash VARCHAR(66),
+  ticket_nft_contract VARCHAR(42),
+  ticket_token_id NUMERIC,
   registered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   status VARCHAR(20) DEFAULT 'confirmed',
   UNIQUE(event_id, user_address)
@@ -102,4 +116,35 @@ CREATE INDEX IF NOT EXISTS event_comments_author_idx ON event_comments(author);
 CREATE INDEX IF NOT EXISTS event_registrations_event_id_idx ON event_registrations(event_id);
 CREATE INDEX IF NOT EXISTS event_registrations_user_address_idx ON event_registrations(user_address);
 CREATE INDEX IF NOT EXISTS event_registrations_status_idx ON event_registrations(status);
+CREATE INDEX IF NOT EXISTS event_registrations_payment_tx_hash_idx ON event_registrations(payment_tx_hash);
+CREATE INDEX IF NOT EXISTS event_registrations_ticket_nft_tx_idx ON event_registrations(ticket_nft_tx_hash);
 CREATE INDEX IF NOT EXISTS event_registrations_registered_at_idx ON event_registrations(registered_at);
+
+-- Create token verifications table
+CREATE TABLE IF NOT EXISTS token_verifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  user_address VARCHAR(255) NOT NULL,
+  token_address VARCHAR(255) NOT NULL,
+  token_balance DECIMAL(20,8) NOT NULL,
+  verification_status VARCHAR(20) NOT NULL, -- 'passed', 'failed', 'pending'
+  verified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS on token_verifications table
+ALTER TABLE token_verifications ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for token_verifications table
+CREATE POLICY "Token verifications are viewable by everyone" ON token_verifications
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can create token verifications" ON token_verifications
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Users can update their own token verifications" ON token_verifications
+  FOR UPDATE USING (user_address = current_setting('request.jwt.claims', true)::json->>'sub');
+
+-- Create indexes for token gating
+CREATE INDEX IF NOT EXISTS events_token_gated_idx ON events(is_token_gated);
+CREATE INDEX IF NOT EXISTS token_verifications_event_user_idx ON token_verifications(event_id, user_address);
+CREATE INDEX IF NOT EXISTS token_verifications_status_idx ON token_verifications(verification_status);

@@ -1069,96 +1069,21 @@ export function EnhancedEventList({
                     </Button>
                   )}
                   
-                  {/* Host management buttons */}
+                  {/* Host management button - only show small Manage button on cards */}
                   {isCreator && (
-                    <div className="flex flex-col gap-2 min-w-[160px]">
-                      <div className="grid grid-cols-2 gap-1">
-                        {onEditEventAction && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditEventAction(event);
-                            }}
-                            className="flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Edit Event"
-                          >
-                            <Icon name="edit" size="sm" />
-                            <span className="hidden sm:inline">Edit</span>
-                          </button>
-                        )}
-                        
-                        {onDownloadCSVAction && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDownloadCSVAction(event.id, event.title);
-                            }}
-                            className="flex items-center justify-center gap-1 px-3 py-2 text-xs font-bold text-green-800 hover:text-green-900 bg-green-200 hover:bg-green-300 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg border-2 border-green-300 hover:border-green-400"
-                            title="Download Registrations CSV"
-                          >
-                            <span className="text-base">📊</span>
-                            <span className="font-bold">CSV</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const eventUrl = `${window.location.origin}/events/${event.id}`;
-                            const eventDate = new Date(`${event.date}T${event.time}`);
-                            const formattedDate = eventDate.toLocaleDateString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit'
-                            });
-                            const shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
-                            const embedUrl = event.imageUrl || eventUrl;
-                            openFarcasterCompose(shareText, embedUrl);
-                          }}
-                          className="flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Share on Farcaster"
-                        >
-                          <Icon name="share" size="sm" />
-                          <span className="hidden sm:inline">Share</span>
-                        </button>
-                        
-                        {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openCancelModal(event.id, event.title);
-                            }}
-                            className="flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium text-orange-700 hover:text-orange-900 bg-orange-100 hover:bg-orange-200 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                            title="Cancel Event"
-                          >
-                            <span className="text-sm">⚠️</span>
-                            <span className="hidden sm:inline">Cancel</span>
-                          </button>
-                  )}
-                </div>
-                      
-                      {onDeleteEventAction && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openDeleteModal(event.id, event.title);
-                          }}
-                          className="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-red-700 hover:text-red-900 bg-red-100 hover:bg-red-200 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
-                          title="Delete Event Permanently"
-                        >
-                          <Icon name="trash" size="sm" />
-                          <span className="font-semibold">Delete Forever</span>
-                        </button>
-                      )}
-                      
-                      {event.status === 'cancelled' && (
-                        <div className="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg">
-                          <span className="text-sm">❌</span>
-                          <span>Event Cancelled</span>
-                        </div>
-                      )}
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClickAction && onEventClickAction(event);
+                      }}
+                      className="whitespace-nowrap text-xs"
+                      title="Manage Event"
+                    >
+                      <Icon name="settings" size="sm" className="mr-1" />
+                      Manage
+                    </Button>
                   )}
                 </div>
               </div>

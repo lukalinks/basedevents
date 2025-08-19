@@ -620,6 +620,7 @@ export function EnhancedEventList({
 }) {
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || "");
   const [selectedTag, setSelectedTag] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: 'cancel' | 'delete';
@@ -629,6 +630,8 @@ export function EnhancedEventList({
 
   // Get all unique tags
   const allTags = Array.from(new Set(events.flatMap(event => event.tags)));
+  // Get all unique locations
+  const allLocations = Array.from(new Set(events.map(event => event.location).filter(Boolean)));
   const openUrl = useOpenUrl();
   const openFarcasterCompose = useCallback((text: string, embedUrl?: string) => {
     const base = 'https://warpcast.com/~/compose';
@@ -687,8 +690,12 @@ export function EnhancedEventList({
       filtered = filtered.filter(event => event.tags.includes(selectedTag));
     }
     
+    if (selectedLocation) {
+      filtered = filtered.filter(event => event.location === selectedLocation);
+    }
+    
     return filtered;
-  }, [events, localSearchQuery, selectedTag]);
+  }, [events, localSearchQuery, selectedTag, selectedLocation]);
 
   const formatDate = (date: string, time: string) => {
     const eventDate = new Date(`${date}T${time}`);
@@ -725,7 +732,7 @@ export function EnhancedEventList({
             <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)]" />
             <input
               type="text"
-              placeholder="Search events..."
+              placeholder="Search events by title, description, or location..."
               value={localSearchQuery}
               onChange={e => {
                 setLocalSearchQuery(e.target.value);
@@ -735,10 +742,44 @@ export function EnhancedEventList({
               }}
               className="w-full pl-10 pr-4 py-2 border rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-transparent"
             />
+            <div className="text-xs text-[var(--app-foreground-muted)] mt-1 ml-1">
+              💡 Try searching for "Zoom", "New York", "online", or event names
+            </div>
           </div>
+          
+          {/* Location Filter */}
+          {allLocations.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-[var(--app-foreground)]">Location:</span>
+              <button
+                onClick={() => setSelectedLocation("")}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  selectedLocation === "" 
+                    ? "bg-[var(--app-accent)] text-white" 
+                    : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
+                }`}
+              >
+                All Locations
+              </button>
+              {allLocations.map(location => (
+                <button
+                  key={location}
+                  onClick={() => setSelectedLocation(location)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    selectedLocation === location 
+                      ? "bg-[var(--app-accent)] text-white" 
+                      : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
+                  }`}
+                >
+                  {location}
+                </button>
+              ))}
+            </div>
+          )}
           
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-[var(--app-foreground)]">Tags:</span>
               <button
                 onClick={() => setSelectedTag("")}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -747,7 +788,7 @@ export function EnhancedEventList({
                     : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
                 }`}
               >
-                All
+                All Tags
               </button>
               {allTags.map(tag => (
                 <button

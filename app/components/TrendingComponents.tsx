@@ -108,7 +108,7 @@ export function LocationSearch({
   return (
     <div className="relative">
       <div className="relative">
-        <Icon name="location" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)]" />
+        <Icon name="location" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)] z-10 pointer-events-none" />
         <input
           type="text"
           value={query}

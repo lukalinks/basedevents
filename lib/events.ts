@@ -608,6 +608,14 @@ export function downloadCSV(csvContent: string, filename: string): void {
   }
 }
 
+// Helper to build CSV download URL supporting both browser and Farcaster
+export function buildCsvDownloadUrl(baseUrl: string, eventId: string, address?: string | null) {
+  const addr = address || ''
+  const url = new URL(`/api/events/${eventId}/registrations`, baseUrl)
+  if (addr) url.searchParams.set('address', addr)
+  return url.toString()
+}
+
 // Search events
 export async function searchEvents(query: string, tags: string[] = []): Promise<Event[]> {
   let queryBuilder = supabase

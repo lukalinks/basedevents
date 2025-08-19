@@ -5,7 +5,11 @@ import { generateEventRegistrationsCSV } from '@/lib/events'
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const eventId = params.id
-    const requester = request.headers.get('x-user-address') || ''
+    const { searchParams } = new URL(request.url)
+    const requesterFromHeader = request.headers.get('x-user-address') || ''
+    const requesterFromQuery = searchParams.get('address') || ''
+    // Accept requester from header (browser fetch) or query param (deep link / Farcaster)
+    const requester = (requesterFromHeader || requesterFromQuery).toLowerCase()
 
     if (!eventId) {
       return NextResponse.json({ error: 'Missing event id' }, { status: 400 })
@@ -28,7 +32,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (!eventRow) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
-    if (!requester || eventRow.creator !== requester) {
+    const eventCreator = String(eventRow.creator || '').toLowerCase()
+    if (!requester || eventCreator !== requester) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
     }
 

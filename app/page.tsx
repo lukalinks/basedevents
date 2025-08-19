@@ -923,7 +923,7 @@ export default function App() {
     try {
       // Construct the full URL for Farcaster environment
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const url = `${baseUrl}/api/events/${eventId}/registrations`;
+      const url = `${baseUrl}/api/events/${eventId}/registrations?address=${encodeURIComponent(address || '')}`;
       
       // If running inside Farcaster Mini app, prefer opening the URL
       if (context?.client?.added) {

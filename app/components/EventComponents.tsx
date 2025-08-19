@@ -822,12 +822,13 @@ export function EnhancedEventList({
   return (
     <div className="space-y-4">
       {showSearch && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Search Bar */}
           <div className="relative">
             <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search events by title, description, or location..."
+              placeholder="Search events..."
               value={localSearchQuery}
               onChange={e => {
                 setLocalSearchQuery(e.target.value);
@@ -835,69 +836,123 @@ export function EnhancedEventList({
                   onSearchAction(e.target.value, selectedTags || []);
                 }
               }}
-              className="w-full pl-10 pr-4 py-3 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all"
+              className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all text-sm sm:text-base"
             />
-            <div className="text-xs text-[var(--app-foreground-muted)] mt-1 ml-1">
+            <div className="text-xs text-[var(--app-foreground-muted)] mt-2 ml-1 hidden sm:block">
               💡 Try searching for "Zoom", "Lusaka", "Johannesburg", "online", or event names
             </div>
           </div>
           
-          {/* Location Filter */}
-          {allLocations.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-[var(--app-foreground)]">Location:</span>
-              <button
-                onClick={() => setSelectedLocation("")}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  selectedLocation === "" 
-                    ? "bg-[var(--app-accent)] text-white" 
-                    : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
-                }`}
-              >
-                All Locations
-              </button>
-              {allLocations.map(location => (
-                <button
-                  key={location}
-                  onClick={() => setSelectedLocation(location)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    selectedLocation === location 
-                      ? "bg-[var(--app-accent)] text-white" 
-                      : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
-                  }`}
-                >
-                  {location}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Filters Section */}
+          <div className="space-y-3">
+            {/* Location Filter */}
+            {allLocations.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Icon name="location" size="sm" className="text-[var(--app-accent)]" />
+                  <span className="text-sm font-medium text-[var(--app-foreground)]">Location Filter</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedLocation("")}
+                    className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      selectedLocation === "" 
+                        ? "bg-[var(--app-accent)] text-white shadow-lg" 
+                        : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)] hover:scale-105"
+                    }`}
+                  >
+                    All Locations
+                  </button>
+                  {allLocations.map(location => (
+                    <button
+                      key={location}
+                      onClick={() => setSelectedLocation(location)}
+                      className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        selectedLocation === location 
+                          ? "bg-[var(--app-accent)] text-white shadow-lg" 
+                          : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)] hover:scale-105"
+                      }`}
+                    >
+                      {location}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Tags Filter */}
+            {allTags.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Icon name="star" size="sm" className="text-[var(--app-accent)]" />
+                  <span className="text-sm font-medium text-[var(--app-foreground)]">Tag Filter</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedTag("")}
+                    className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      selectedTag === "" 
+                        ? "bg-[var(--app-accent)] text-white shadow-lg" 
+                        : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)] hover:scale-105"
+                    }`}
+                  >
+                    All Tags
+                  </button>
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        selectedTag === tag 
+                          ? "bg-[var(--app-accent)] text-white shadow-lg" 
+                          : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)] hover:scale-105"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-[var(--app-foreground)]">Tags:</span>
-              <button
-                onClick={() => setSelectedTag("")}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  selectedTag === "" 
-                    ? "bg-[var(--app-accent)] text-white" 
-                    : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
-                }`}
-              >
-                All Tags
-              </button>
-              {allTags.map(tag => (
+          {/* Active Filters Summary */}
+          {(selectedLocation || selectedTag || localSearchQuery) && (
+            <div className="bg-[var(--app-accent)]/10 border border-[var(--app-accent)]/20 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="search" size="sm" className="text-[var(--app-accent)]" />
+                <span className="text-sm font-medium text-[var(--app-foreground)]">Active Filters</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {localSearchQuery && (
+                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
+                    Search: "{localSearchQuery}"
+                  </span>
+                )}
+                {selectedLocation && (
+                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
+                    Location: {selectedLocation}
+                  </span>
+                )}
+                {selectedTag && (
+                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
+                    Tag: {selectedTag}
+                  </span>
+                )}
                 <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    selectedTag === tag 
-                      ? "bg-[var(--app-accent)] text-white" 
-                      : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-gray-dark)]"
-                  }`}
+                  onClick={() => {
+                    setLocalSearchQuery("");
+                    setSelectedLocation("");
+                    setSelectedTag("");
+                    if (onSearchAction) {
+                      onSearchAction("", []);
+                    }
+                  }}
+                  className="px-2 py-1 bg-red-500/20 text-red-600 text-xs rounded-full hover:bg-red-500/30 transition-colors"
                 >
-                  {tag}
+                  Clear All
                 </button>
-              ))}
+              </div>
             </div>
           )}
         </div>

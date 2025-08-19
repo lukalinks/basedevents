@@ -16,8 +16,8 @@ import {
   Avatar,
   EthBalance,
 } from "@coinbase/onchainkit/identity";
-import { EventDetailsPage } from '@/app/components/EventComponents';
-import { Event, rsvpToEvent, cancelRegistration } from '@/lib/events';
+import { EventDetailsPage, EventRegistrationForm } from '@/app/components/EventComponents';
+import { Event, rsvpToEvent, cancelRegistration, registerForEvent } from '@/lib/events';
 
 export default function ClientEventPage({ event }: { event: Event }) {
   const { address } = useAccount();
@@ -61,6 +61,21 @@ export default function ClientEventPage({ event }: { event: Event }) {
     } catch (error) {
       console.error('Cancel RSVP failed:', error);
       alert('Failed to cancel RSVP. Please try again.');
+    }
+  };
+
+  // Handle registration form submission
+  const handleRegistrationSubmit = async (userDetails: {name: string, email: string, phone?: string, bio?: string}, onchain?: { paymentTxHash?: `0x${string}` }) => {
+    if (!address || !event) return;
+    
+    try {
+      await registerForEvent(event.id, address, userDetails, onchain);
+      setShowRegistrationForm(false);
+      setRefreshTrigger(prev => prev + 1);
+      alert('Registration successful!');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      alert('Registration failed. Please try again.');
     }
   };
 
@@ -112,6 +127,13 @@ export default function ClientEventPage({ event }: { event: Event }) {
           onCancelRSVPAction={handleCancelRSVP}
           refreshTrigger={refreshTrigger}
         />
+        {showRegistrationForm && (
+          <EventRegistrationForm
+            event={event}
+            onRegisterAction={handleRegistrationSubmit}
+            onCancelAction={() => setShowRegistrationForm(false)}
+          />
+        )}
       </main>
     </div>
   );

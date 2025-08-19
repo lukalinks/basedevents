@@ -548,11 +548,20 @@ export default function App() {
         try {
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
           const eventUrl = `${origin}/events/${newEvent.id}`;
-          const shareText = `I just created an event: "${newEvent.title}"`;
+          const eventDate = new Date(`${newEvent.date}T${newEvent.time}`);
+          const formattedDate = eventDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+          const shareText = `🎉 I just created an event!\n\n📅 ${newEvent.title}\n📝 ${newEvent.description.substring(0, 100)}${newEvent.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${newEvent.location}`;
           if (typeof window !== 'undefined') {
             const shouldShare = window.confirm('Share your new event on Farcaster?');
             if (shouldShare) {
-              openFarcasterCompose(shareText, eventUrl);
+              const embedUrl = newEvent.imageUrl || eventUrl;
+              openFarcasterCompose(shareText, embedUrl);
             }
           }
         } catch {}
@@ -633,10 +642,19 @@ export default function App() {
         try {
           const origin = window.location.origin;
           const eventUrl = `${origin}/events/${showRegistrationForm.id}`;
-          const shareText = `I just registered for "${showRegistrationForm.title}"!`;
+          const eventDate = new Date(`${showRegistrationForm.date}T${showRegistrationForm.time}`);
+          const formattedDate = eventDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+          const shareText = `✅ I just registered for an event!\n\n📅 ${showRegistrationForm.title}\n📝 ${showRegistrationForm.description.substring(0, 100)}${showRegistrationForm.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${showRegistrationForm.location}`;
           const shouldShare = window.confirm('Share your registration on Farcaster?');
           if (shouldShare) {
-            openFarcasterCompose(shareText, eventUrl);
+            const embedUrl = showRegistrationForm.imageUrl || eventUrl;
+            openFarcasterCompose(shareText, embedUrl);
           }
         } catch {}
       }

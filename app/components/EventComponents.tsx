@@ -643,6 +643,31 @@ export function EnhancedEventList({
     openUrl(composeUrl);
   }, [openUrl]);
 
+  // Enhanced Farcaster sharing with event details
+  const shareEventOnFarcaster = useCallback((event: Event, shareType: 'created' | 'registered' | 'general' = 'general') => {
+    const eventUrl = `${window.location.origin}/events/${event.id}`;
+    
+    // Create rich text with event details
+    let shareText = '';
+    
+    switch (shareType) {
+      case 'created':
+        shareText = `🎉 I just created an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+      case 'registered':
+        shareText = `✅ I just registered for an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+      case 'general':
+      default:
+        shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+    }
+    
+    // Add event image as embed if available
+    const embedUrl = event.imageUrl || eventUrl;
+    openFarcasterCompose(shareText, embedUrl);
+  }, [openFarcasterCompose]);
+
   // Handle confirmation modal actions
   const handleConfirmAction = () => {
     if (confirmModal.type === 'cancel' && onCancelEventAction) {
@@ -743,7 +768,7 @@ export function EnhancedEventList({
               className="w-full pl-10 pr-4 py-2 border rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-transparent"
             />
             <div className="text-xs text-[var(--app-foreground-muted)] mt-1 ml-1">
-              💡 Try searching for "Zoom", "New York", "online", or event names
+              💡 Try searching for "Zoom", "Lusaka", "Johannesburg", "online", or event names
             </div>
           </div>
           
@@ -970,8 +995,17 @@ export function EnhancedEventList({
                           onClick={(e) => {
                             e.stopPropagation();
                             const eventUrl = `${window.location.origin}/events/${event.id}`;
-                            const shareText = `Check out my event: ${event.title}`;
-                            openFarcasterCompose(shareText, eventUrl);
+                            const eventDate = new Date(`${event.date}T${event.time}`);
+                            const formattedDate = eventDate.toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            });
+                            const shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
+                            const embedUrl = event.imageUrl || eventUrl;
+                            openFarcasterCompose(shareText, embedUrl);
                           }}
                           className="flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                           title="Share on Farcaster"
@@ -1839,6 +1873,31 @@ export function EventDetailsPage({
     openUrl(composeUrl);
   }, [openUrl]);
 
+  // Enhanced Farcaster sharing with event details
+  const shareEventOnFarcaster = useCallback((event: Event, shareType: 'created' | 'registered' | 'general' = 'general') => {
+    const eventUrl = `${window.location.origin}/events/${event.id}`;
+    
+    // Create rich text with event details
+    let shareText = '';
+    
+    switch (shareType) {
+      case 'created':
+        shareText = `🎉 I just created an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+      case 'registered':
+        shareText = `✅ I just registered for an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+      case 'general':
+      default:
+        shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        break;
+    }
+    
+    // Add event image as embed if available
+    const embedUrl = event.imageUrl || eventUrl;
+    openFarcasterCompose(shareText, embedUrl);
+  }, [openFarcasterCompose]);
+
   // Add timeout for registration loading to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -1987,8 +2046,17 @@ export function EventDetailsPage({
             size="md"
             onClick={() => {
               const eventUrl = `${window.location.origin}/events/${event.id}`;
-              const shareText = `Check out this event: ${event.title}`;
-              openFarcasterCompose(shareText, eventUrl);
+              const eventDate = new Date(`${event.date}T${event.time}`);
+              const formattedDate = eventDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              });
+              const shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
+              const embedUrl = event.imageUrl || eventUrl;
+              openFarcasterCompose(shareText, embedUrl);
             }}
             className="flex items-center gap-2"
           >
@@ -2054,8 +2122,17 @@ export function EventDetailsPage({
                       size="lg"
                       onClick={() => {
                         const eventUrl = `${window.location.origin}/events/${event.id}`;
-                        const shareText = `I just registered for \"${event.title}\"!`;
-                        openFarcasterCompose(shareText, eventUrl);
+                        const eventDate = new Date(`${event.date}T${event.time}`);
+                        const formattedDate = eventDate.toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        });
+                        const shareText = `✅ I just registered for an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
+                        const embedUrl = event.imageUrl || eventUrl;
+                        openFarcasterCompose(shareText, embedUrl);
                       }}
                       className="w-full sm:w-auto max-w-xs"
                     >

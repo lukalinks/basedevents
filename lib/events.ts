@@ -472,7 +472,26 @@ export async function cancelRsvp(eventId: string, userAddress: string): Promise<
     throw error
   }
 
-  return transformEventFromDB(data)
+  const updatedEvent = transformEventFromDB(data)
+
+  // Send notification to event creator about RSVP cancellation
+  try {
+    // Import dynamically to avoid SSR issues
+    const { notifyEventCreator } = await import('@/lib/farcaster');
+    
+    if (currentEvent.creator && currentEvent.creator !== userAddress) {
+      await notifyEventCreator(
+        currentEvent.creator,
+        currentEvent.title,
+        userAddress
+      );
+    }
+  } catch (notificationError) {
+    console.error('Failed to send RSVP cancellation notification:', notificationError);
+    // Don't throw error here as the RSVP cancellation was successful
+  }
+
+  return updatedEvent
 }
 
 // Update an event
@@ -524,6 +543,19 @@ export async function updateEvent(eventId: string, updates: Partial<Omit<Event, 
 
 // Delete an event
 export async function deleteEvent(eventId: string): Promise<void> {
+  // First get the current event to capture attendee information before deletion
+  const { data: currentEvent, error: fetchError } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching event for deletion:', fetchError)
+    throw fetchError
+  }
+
+  // Delete the event
   const { error } = await supabase
     .from('events')
     .delete()
@@ -533,10 +565,55 @@ export async function deleteEvent(eventId: string): Promise<void> {
     console.error('Error deleting event:', error)
     throw error
   }
+
+  // Send notifications to attendees and creator
+  try {
+    const eventDate = new Date(`${currentEvent.date}T${currentEvent.time}`).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const response = await fetch('/api/events/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'delete',
+        eventTitle: currentEvent.title,
+        eventDate: eventDate,
+        attendeeAddresses: currentEvent.attendees || [],
+        creatorAddress: currentEvent.creator
+      })
+    });
+
+    if (response.ok) {
+      const results = await response.json();
+      console.log('Deletion notification results:', results);
+    } else {
+      console.error('Failed to send deletion notifications:', await response.text());
+    }
+  } catch (notificationError) {
+    console.error('Failed to send deletion notifications:', notificationError);
+    // Don't throw error here as the event deletion was successful
+  }
 }
 
 // Cancel an event (changes status to 'cancelled')
 export async function cancelEvent(eventId: string): Promise<Event> {
+  // First get the current event to capture attendee information before cancellation
+  const { data: currentEvent, error: fetchError } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching event for cancellation:', fetchError)
+    throw fetchError
+  }
+
+  // Update event status to cancelled
   const { data, error } = await supabase
     .from('events')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
@@ -549,7 +626,41 @@ export async function cancelEvent(eventId: string): Promise<Event> {
     throw error
   }
 
-  return transformEventFromDB(data)
+  const cancelledEvent = transformEventFromDB(data)
+
+  // Send notifications to attendees and creator
+  try {
+    const eventDate = new Date(`${currentEvent.date}T${currentEvent.time}`).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const response = await fetch('/api/events/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'cancel',
+        eventTitle: currentEvent.title,
+        eventDate: eventDate,
+        attendeeAddresses: currentEvent.attendees || [],
+        creatorAddress: currentEvent.creator
+      })
+    });
+
+    if (response.ok) {
+      const results = await response.json();
+      console.log('Cancellation notification results:', results);
+    } else {
+      console.error('Failed to send cancellation notifications:', await response.text());
+    }
+  } catch (notificationError) {
+    console.error('Failed to send cancellation notifications:', notificationError);
+    // Don't throw error here as the event cancellation was successful
+  }
+
+  return cancelledEvent
 }
 
 // CSV Export utility functions

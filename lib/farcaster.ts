@@ -143,3 +143,140 @@ export async function hasNotificationsEnabled(address: string): Promise<boolean>
     return false;
   }
 }
+
+/**
+ * Send notification to all attendees when an event is cancelled
+ */
+export async function notifyEventCancellation(
+  eventTitle: string,
+  eventDate: string,
+  attendeeAddresses: string[]
+) {
+  const results = [];
+  
+  for (const attendeeAddress of attendeeAddresses) {
+    try {
+      const attendeeFid = await getAddressFid(attendeeAddress);
+      
+      if (!attendeeFid) {
+        console.log(`Attendee ${attendeeAddress} not found on Farcaster, skipping cancellation notification`);
+        results.push({ address: attendeeAddress, success: false, reason: 'no_fid' });
+        continue;
+      }
+
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fid: attendeeFid,
+          notification: {
+            title: `Event Cancelled: ${eventTitle}`,
+            body: `The event scheduled for ${eventDate} has been cancelled.`,
+            notificationDetails: null
+          }
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Cancellation notification sent to attendee FID: ${attendeeFid}`);
+        results.push({ address: attendeeAddress, success: true, fid: attendeeFid });
+      } else {
+        console.error('Failed to send cancellation notification:', await response.text());
+        results.push({ address: attendeeAddress, success: false, reason: 'api_error' });
+      }
+    } catch (error) {
+      console.error('Error sending cancellation notification to attendee:', attendeeAddress, error);
+      results.push({ address: attendeeAddress, success: false, reason: 'exception' });
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Send notification to all attendees when an event is deleted
+ */
+export async function notifyEventDeletion(
+  eventTitle: string,
+  eventDate: string,
+  attendeeAddresses: string[]
+) {
+  const results = [];
+  
+  for (const attendeeAddress of attendeeAddresses) {
+    try {
+      const attendeeFid = await getAddressFid(attendeeAddress);
+      
+      if (!attendeeFid) {
+        console.log(`Attendee ${attendeeAddress} not found on Farcaster, skipping deletion notification`);
+        results.push({ address: attendeeAddress, success: false, reason: 'no_fid' });
+        continue;
+      }
+
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fid: attendeeFid,
+          notification: {
+            title: `Event Deleted: ${eventTitle}`,
+            body: `The event scheduled for ${eventDate} has been deleted.`,
+            notificationDetails: null
+          }
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Deletion notification sent to attendee FID: ${attendeeFid}`);
+        results.push({ address: attendeeAddress, success: true, fid: attendeeFid });
+      } else {
+        console.error('Failed to send deletion notification:', await response.text());
+        results.push({ address: attendeeAddress, success: false, reason: 'api_error' });
+      }
+    } catch (error) {
+      console.error('Error sending deletion notification to attendee:', attendeeAddress, error);
+      results.push({ address: attendeeAddress, success: false, reason: 'exception' });
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Send notification to event creator when event is cancelled/deleted
+ */
+export async function notifyEventCreatorOfCancellation(
+  creatorAddress: string,
+  eventTitle: string,
+  action: 'cancelled' | 'deleted'
+) {
+  try {
+    const response = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        creatorAddress,
+        notification: {
+          title: `Event ${action.charAt(0).toUpperCase() + action.slice(1)}: ${eventTitle}`,
+          body: `Your event has been ${action}. All attendees have been notified.`,
+          notificationDetails: null
+        }
+      })
+    });
+
+    if (response.ok) {
+      const resJson = await response.json().catch(() => ({}));
+      if (resJson?.state === 'no_token') {
+        console.log('Creator has not enabled notifications for this app.');
+        return false;
+      }
+      return true;
+    } else {
+      console.error('Failed to send creator notification:', await response.text());
+      return false;
+    }
+  } catch (error) {
+    console.error('Error sending creator notification:', error);
+    return false;
+  }
+}

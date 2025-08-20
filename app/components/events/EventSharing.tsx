@@ -15,6 +15,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
   const { composeCast } = useComposeCast();
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const formatDate = (date: string, time: string) => {
     const eventDate = new Date(`${date}T${time}`);
@@ -109,10 +110,11 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
       // Store the shared event link for analytics
       storeSharedEventLink(eventData);
       
+      // Reset success state after 3 seconds
+      setTimeout(() => setShareSuccess(false), 3000);
+      
     } catch (error) {
       console.error('❌ Failed to share on Farcaster:', error);
-      // Fallback to URL-based sharing
-      handleFallbackShare();
     } finally {
       setIsSharing(false);
     }
@@ -140,80 +142,38 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
     }
   };
 
-  const handleFallbackShare = () => {
-    const { url: eventUrl, data: eventData } = generateEventLink();
-    const shareText = `🎉 Check out this amazing event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}\n\n${eventUrl}`;
-    
-    // Try native sharing first
-    if (navigator.share) {
-      navigator.share({
-        title: event.title,
-        text: shareText,
-        url: eventUrl,
-      }).catch((error) => {
-        console.log('Native sharing failed, falling back to clipboard:', error);
-        copyToClipboard(shareText, eventUrl);
-      });
-    } else {
-      copyToClipboard(shareText, eventUrl);
-    }
-    
-    // Store the shared event link
-    storeSharedEventLink(eventData);
-  };
-
-  const copyToClipboard = async (text: string, url: string) => {
+  const handleCopyEventLink = async () => {
+    const { url: eventUrl } = generateEventLink();
     try {
-      const fullText = `${text}\n\n${url}`;
-      await navigator.clipboard.writeText(fullText);
-      
-      setShareSuccess(true);
+      await navigator.clipboard.writeText(eventUrl);
+      setCopySuccess(true);
       console.log('✅ Event link copied to clipboard');
       
       // Reset success state after 3 seconds
-      setTimeout(() => setShareSuccess(false), 3000);
+      setTimeout(() => setCopySuccess(false), 3000);
     } catch (error) {
       console.error('❌ Failed to copy to clipboard:', error);
     }
   };
 
-  const handleTwitterShare = () => {
-    const { url: eventUrl } = generateEventLink();
-    const shareText = `🎉 Check out this amazing event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(eventUrl)}`;
-    window.open(twitterUrl, '_blank');
-  };
-
-  const handleLinkedInShare = () => {
-    const { url: eventUrl } = generateEventLink();
-    const shareText = `Check out this amazing event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}&title=${encodeURIComponent(event.title)}&summary=${encodeURIComponent(shareText)}`;
-    window.open(linkedInUrl, '_blank');
-  };
-
-  const handleCopyEventLink = () => {
-    const { url: eventUrl } = generateEventLink();
-    copyToClipboard(`Event: ${event.title}`, eventUrl);
-  };
-
   if (variant === 'compact') {
     return (
-      <div className={`flex gap-1.5 ${className}`}>
+      <div className={`flex flex-wrap gap-2 ${className}`}>
         {/* Farcaster Share */}
         <Button
           variant="ghost"
           size="sm"
           onClick={handleFarcasterShare}
           disabled={isSharing}
-          className={`text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5 ${
-            shareSuccess ? 'text-green-600' : ''
+          className={`text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1.5 text-xs px-3 py-2 transition-colors ${
+            shareSuccess ? 'text-green-600 bg-green-50' : ''
           }`}
         >
           <Icon name="share" size="sm" />
-          <span className="hidden sm:inline">
+          <span className="hidden xs:inline">
             {isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Farcaster'}
           </span>
-          <span className="sm:hidden">
+          <span className="xs:hidden">
             {isSharing ? '...' : shareSuccess ? '✓' : 'Farcaster'}
           </span>
         </Button>
@@ -223,55 +183,49 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
           variant="ghost"
           size="sm"
           onClick={handleCopyEventLink}
-          className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
+          className={`text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1.5 text-xs px-3 py-2 transition-colors ${
+            copySuccess ? 'text-green-600 bg-green-50' : ''
+          }`}
         >
           <Icon name="link" size="sm" />
-          <span className="hidden sm:inline">Copy Link</span>
-          <span className="sm:hidden">Link</span>
-        </Button>
-        
-        {/* Native Share */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleFallbackShare}
-          className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
-        >
-          <Icon name="share" size="sm" />
-          <span className="hidden sm:inline">Share</span>
-          <span className="sm:hidden">Share</span>
+          <span className="hidden xs:inline">
+            {copySuccess ? 'Copied!' : 'Copy Link'}
+          </span>
+          <span className="xs:hidden">
+            {copySuccess ? '✓' : 'Link'}
+          </span>
         </Button>
       </div>
     );
   }
 
-  // Default variant with more options
+  // Default variant with more detailed layout
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2">
         <Icon name="share" size="sm" className="text-[var(--app-foreground-muted)]" />
         <span className="text-sm font-medium text-[var(--app-foreground)]">Share this event</span>
-        {shareSuccess && (
+        {(shareSuccess || copySuccess) && (
           <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-            Shared successfully!
+            {shareSuccess ? 'Shared successfully!' : 'Link copied!'}
           </span>
         )}
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Farcaster Share */}
         <Button
           variant="outline"
           size="sm"
           onClick={handleFarcasterShare}
           disabled={isSharing}
-          className={`bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 flex items-center gap-2 ${
+          className={`bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 flex items-center justify-center gap-2 py-3 transition-colors ${
             shareSuccess ? 'bg-green-50 text-green-700 border-green-200' : ''
           }`}
         >
           <Icon name="share" size="sm" />
-          <span>
-            {isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Farcaster'}
+          <span className="font-medium">
+            {isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Share on Farcaster'}
           </span>
         </Button>
         
@@ -280,54 +234,25 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
           variant="outline"
           size="sm"
           onClick={handleCopyEventLink}
-          className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 flex items-center gap-2"
+          className={`bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 flex items-center justify-center gap-2 py-3 transition-colors ${
+            copySuccess ? 'bg-green-50 text-green-700 border-green-200' : ''
+          }`}
         >
           <Icon name="link" size="sm" />
-          <span>Copy Link</span>
-        </Button>
-        
-        {/* Native Share */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleFallbackShare}
-          className="bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200 flex items-center gap-2"
-        >
-          <Icon name="share" size="sm" />
-          <span>Share</span>
-        </Button>
-        
-        {/* Twitter Share */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleTwitterShare}
-          className="bg-sky-50 text-sky-700 hover:bg-sky-100 border-sky-200 flex items-center gap-2"
-        >
-          <Icon name="share" size="sm" />
-          <span>Twitter</span>
-        </Button>
-        
-        {/* LinkedIn Share */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLinkedInShare}
-          className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200 flex items-center gap-2"
-        >
-          <Icon name="share" size="sm" />
-          <span>LinkedIn</span>
+          <span className="font-medium">
+            {copySuccess ? 'Copied!' : 'Copy Link'}
+          </span>
         </Button>
       </div>
       
       {/* Event Preview */}
-      <div className="bg-[var(--app-gray)] rounded-lg p-3 space-y-2">
+      <div className="bg-[var(--app-gray)] rounded-lg p-4 space-y-3">
         <div className="flex items-start gap-3">
           {event.imageUrl && (
             <img 
               src={event.imageUrl} 
               alt={event.title} 
-              className="w-16 h-16 object-cover rounded-lg"
+              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
             />
           )}
           <div className="flex-1 min-w-0">
@@ -337,22 +262,24 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
             <p className="text-[var(--app-foreground-muted)] text-xs">
               {formatDate(event.date, event.time)} • {event.location}
             </p>
-            <p className="text-[var(--app-foreground-muted)] text-xs truncate">
+            <p className="text-[var(--app-foreground-muted)] text-xs line-clamp-2">
               {event.description}
             </p>
-            {event.isPaid && event.priceUSDC && (
-              <p className="text-xs text-blue-600 font-medium">
-                💰 {event.priceUSDC} USDC
-              </p>
-            )}
-            {event.isTokenGated && (
-              <p className="text-xs text-purple-600 font-medium">
-                🔒 Token-gated event
-              </p>
-            )}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {event.isPaid && event.priceUSDC && (
+                <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
+                  💰 {event.priceUSDC} USDC
+                </span>
+              )}
+              {event.isTokenGated && (
+                <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full">
+                  🔒 Token-gated
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="text-xs text-[var(--app-foreground-muted)] break-all">
+        <div className="text-xs text-[var(--app-foreground-muted)] break-all bg-white/50 p-2 rounded border">
           {getEventUrl()}
         </div>
       </div>

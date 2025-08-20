@@ -1291,8 +1291,9 @@ export default function App() {
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-full border-2 border-white"></div>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-xl tracking-tight text-white">
-              BasedEvents
+            <span className="font-bold text-xl tracking-tight">
+              <span className="text-[var(--app-accent)]">Based</span>
+              <span className="text-[var(--app-foreground-muted)]">Events</span>
             </span>
             <span className="text-xs text-[var(--app-foreground-muted)]">Find Your Next Event</span>
           </div>

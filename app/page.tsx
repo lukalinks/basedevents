@@ -1020,14 +1020,22 @@ export default function App() {
   };
 
   const openUrl = useOpenUrl();
-  const openFarcasterCompose = useCallback((text: string, embedUrl?: string) => {
-    const base = 'https://warpcast.com/~/compose';
-    const params = new URLSearchParams({ text });
-    if (embedUrl) {
-      params.append('embeds[]', embedUrl);
+  const openFarcasterCompose = useCallback(async (text: string, embedUrl?: string) => {
+    try {
+      // Try to use Farcaster SDK first
+      const { composeCast } = await import('../lib/farcaster-sdk');
+      await composeCast(text, embedUrl ? [embedUrl] : undefined);
+    } catch (error) {
+      console.warn('Farcaster SDK not available, using fallback:', error);
+      // Fallback to URL-based compose
+      const base = 'https://warpcast.com/~/compose';
+      const params = new URLSearchParams({ text });
+      if (embedUrl) {
+        params.append('embeds[]', embedUrl);
+      }
+      const composeUrl = `${base}?${params.toString()}`;
+      openUrl(composeUrl);
     }
-    const composeUrl = `${base}?${params.toString()}`;
-    openUrl(composeUrl);
   }, [openUrl]);
 
   // CSV download handler

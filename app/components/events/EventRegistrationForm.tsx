@@ -7,6 +7,7 @@ import { Event } from "@/lib/events";
 import { Transaction, TransactionButton, TransactionStatus } from '@coinbase/onchainkit/transaction';
 import { encodeFunctionData, parseUnits } from 'viem';
 import { TokenGateStatus } from '../TokenGating';
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base USDC address
 const USDC_ABI = [
@@ -48,6 +49,7 @@ export function EventRegistrationForm({
   const [paymentTx, setPaymentTx] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [tokenVerified, setTokenVerified] = useState(!event.isTokenGated); // Start as true if no token gating
+  const openUrl = useOpenUrl();
 
   // OnchainKit payment call for paid events using viem
   const paymentCalls: { to: `0x${string}`; data?: `0x${string}`; value?: bigint }[] = useMemo(() => {
@@ -236,14 +238,15 @@ export function EventRegistrationForm({
                     <TransactionStatus>
                       <div className="mt-2 text-sm text-center">
                         {paymentTx && (
-                          <a
-                            href={`https://basescan.org/tx/${paymentTx}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            View transaction ↗
-                          </a>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <span className="font-medium">Transaction:</span>
+                            <button
+                              onClick={() => openUrl(`https://basescan.org/tx/${paymentTx}`)}
+                              className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border hover:bg-gray-200 transition-colors"
+                            >
+                              {paymentTx.slice(0, 10)}...{paymentTx.slice(-8)}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </TransactionStatus>

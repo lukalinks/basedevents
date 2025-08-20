@@ -15,6 +15,7 @@ import {
   type TokenGateResult 
 } from '@/lib/tokenGating';
 import type { Event } from '@/lib/events';
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 interface TokenGateSetupProps {
   onTokenGateChange: (tokenGate: {
@@ -296,6 +297,7 @@ export function TokenGateStatus({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasVerified, setHasVerified] = useState(false);
+  const openUrl = useOpenUrl();
 
   useEffect(() => {
     if (event.isTokenGated && userAddress && event.requiredTokenAddress) {
@@ -575,7 +577,7 @@ export function TokenGateStatus({
 
          {(verification || error) && event.requiredTokenAddress && (
            <button
-             onClick={() => window.open(`https://basescan.org/token/${event.requiredTokenAddress}`, '_blank')}
+             onClick={() => openUrl(`https://basescan.org/token/${event.requiredTokenAddress}`)}
              className="px-4 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-lg hover:scale-105 hover:shadow-xl active:scale-95"
              style={{background: 'var(--app-base)'}}
            >
@@ -669,7 +671,7 @@ export function TokenRequirementDisplay({ event, showDetails = false }: TokenReq
               {event.requiredTokenAddress.slice(0, 20)}...{event.requiredTokenAddress.slice(-20)}
             </code>
             <button
-              onClick={() => window.open(`https://basescan.org/token/${event.requiredTokenAddress}`, '_blank')}
+              onClick={() => openUrl(`https://basescan.org/token/${event.requiredTokenAddress}`)}
               className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 text-white shadow-md"
               style={{background: 'var(--app-base)'}}
             >

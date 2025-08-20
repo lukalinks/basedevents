@@ -16,6 +16,7 @@ import {
   TransactionStatus,
 } from "@coinbase/onchainkit/transaction";
 import { useNotification } from "@coinbase/onchainkit/minikit";
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 type ButtonProps = {
   children: ReactNode;
@@ -671,6 +672,7 @@ function TransactionCard() {
     : [], [address]);
 
   const sendNotification = useNotification();
+  const openUrl = useOpenUrl();
 
   const handleSuccess = useCallback(async (response: TransactionResponse) => {
     const transactionHash = response.transactionReceipts[0].transactionHash;
@@ -688,14 +690,12 @@ function TransactionCard() {
       <div className="space-y-4">
         <p className="text-[var(--app-foreground-muted)] mb-4">
           Experience the power of seamless sponsored transactions with{" "}
-          <a
-            href="https://onchainkit.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => openUrl("https://onchainkit.xyz")}
             className="text-[#0052FF] hover:underline"
           >
             OnchainKit
-          </a>
+          </button>
           .
         </p>
 

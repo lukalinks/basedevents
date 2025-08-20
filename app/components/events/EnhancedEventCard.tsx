@@ -358,32 +358,34 @@ export function EnhancedEventCard({
               )}
               
               {isCreator && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   <Button
                     variant="outline"
-                    size="md"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (onEventClick) onEventClick(event);
                     }}
-                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs px-2 py-1.5"
                   >
-                    <Icon name="edit" size="sm" className="mr-2" />
-                    Manage Event
+                    <Icon name="edit" size="sm" className="mr-1" />
+                    <span className="hidden sm:inline">Manage</span>
+                    <span className="sm:hidden">Manage</span>
                   </Button>
                   
                   {onDownloadCSV && (
                     <Button
                       variant="outline"
-                      size="md"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDownloadCSV(event.id, event.title);
                       }}
-                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200 text-xs px-2 py-1.5"
                     >
-                      <Icon name="download" size="sm" className="mr-2" />
-                      Export
+                      <Icon name="download" size="sm" className="mr-1" />
+                      <span className="hidden sm:inline">Export</span>
+                      <span className="sm:hidden">Export</span>
                     </Button>
                   )}
                 </div>
@@ -391,7 +393,7 @@ export function EnhancedEventCard({
             </div>
 
             {/* Share Buttons */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {/* Farcaster Share */}
               <Button
                 variant="ghost"
@@ -401,10 +403,11 @@ export function EnhancedEventCard({
                   const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
                   openFarcasterCompose(shareText);
                 }}
-                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1"
+                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
               >
                 <Icon name="share" size="sm" />
-                <span className="text-xs">Farcaster</span>
+                <span className="hidden sm:inline">Farcaster</span>
+                <span className="sm:hidden">Farcaster</span>
               </Button>
               
               {/* Normal Share */}
@@ -428,10 +431,11 @@ export function EnhancedEventCard({
                     // You could add a toast notification here
                   }
                 }}
-                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1"
+                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
               >
                 <Icon name="share" size="sm" />
-                <span className="text-xs">Share</span>
+                <span className="hidden sm:inline">Share</span>
+                <span className="sm:hidden">Share</span>
               </Button>
             </div>
           </div>

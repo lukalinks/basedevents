@@ -422,24 +422,26 @@ export function EnhancedEventDetailsModal({
 
                      {/* Event Management Actions */}
            {isCreator && (
-             <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-               <h3 className="font-bold text-lg mb-4 text-[var(--app-foreground)]">
+             <div className="bg-[var(--app-card-bg)] rounded-xl p-4 border border-[var(--app-card-border)]">
+               <h3 className="font-bold text-base mb-3 text-[var(--app-foreground)]">
                  Manage Event
                </h3>
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                 <Button variant="outline" size="md" onClick={() => onEditAction && onEditAction(event)} className="w-full">
-                   <Icon name="edit" size="sm" className="mr-2" />
-                   Edit Event
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                 <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="w-full text-xs px-2 py-1.5">
+                   <Icon name="edit" size="sm" className="mr-1" />
+                   <span className="hidden sm:inline">Edit Event</span>
+                   <span className="sm:hidden">Edit</span>
                  </Button>
                  
                  {onDownloadCSVAction && (
-                   <Button variant="outline" size="md" onClick={() => onDownloadCSVAction(event.id, event.title)} className="w-full text-green-600 hover:bg-green-50 hover:text-green-700">
-                     <span className="text-base mr-2">📊</span>
-                     Download CSV
+                   <Button variant="outline" size="sm" onClick={() => onDownloadCSVAction(event.id, event.title)} className="w-full text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-2 py-1.5">
+                     <span className="text-sm mr-1">📊</span>
+                     <span className="hidden sm:inline">Download CSV</span>
+                     <span className="sm:hidden">CSV</span>
                    </Button>
                  )}
                  
-                 <Button variant="outline" size="md" onClick={() => {
+                 <Button variant="outline" size="sm" onClick={() => {
                    const eventUrl = `${window.location.origin}/events/${event.id}`;
                    const eventDate = new Date(`${event.date}T${event.time}`);
                    const formattedDate = eventDate.toLocaleDateString('en-US', {
@@ -462,26 +464,29 @@ export function EnhancedEventDetailsModal({
                        alert('Event link copied to clipboard!');
                      });
                    }
-                 }} className="w-full text-purple-600 hover:bg-purple-50 hover:text-purple-700">
-                   <Icon name="share" size="sm" className="mr-2" />
-                   Share Event
+                 }} className="w-full text-purple-600 hover:bg-purple-50 hover:text-purple-700 text-xs px-2 py-1.5">
+                   <Icon name="share" size="sm" className="mr-1" />
+                   <span className="hidden sm:inline">Share Event</span>
+                   <span className="sm:hidden">Share</span>
                  </Button>
                  
                  {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
-                   <Button variant="outline" size="md" onClick={() => onCancelEventAction(event.id)} className="w-full text-orange-600 hover:bg-orange-50 hover:text-orange-700">
-                     <span className="text-sm mr-2">⚠️</span>
-                     Cancel Event
+                   <Button variant="outline" size="sm" onClick={() => onCancelEventAction(event.id)} className="w-full text-orange-600 hover:bg-orange-50 hover:text-orange-700 text-xs px-2 py-1.5">
+                     <span className="text-xs mr-1">⚠️</span>
+                     <span className="hidden sm:inline">Cancel Event</span>
+                     <span className="sm:hidden">Cancel</span>
                    </Button>
                  )}
                  
-                 <Button variant="ghost" size="md" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="w-full text-red-500 hover:bg-red-50 hover:text-red-600">
-                   <Icon name="trash" size="sm" className="mr-2" />
-                   Delete Event
+                 <Button variant="ghost" size="sm" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="w-full text-red-500 hover:bg-red-50 hover:text-red-600 text-xs px-2 py-1.5">
+                   <Icon name="trash" size="sm" className="mr-1" />
+                   <span className="hidden sm:inline">Delete Event</span>
+                   <span className="sm:hidden">Delete</span>
                  </Button>
                  
                  {event.status === 'cancelled' && (
-                   <div className="col-span-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg">
-                     <span className="text-sm">❌</span>
+                   <div className="col-span-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg">
+                     <span className="text-xs">❌</span>
                      <span>Event Cancelled</span>
                    </div>
                  )}

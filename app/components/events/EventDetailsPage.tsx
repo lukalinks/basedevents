@@ -491,29 +491,32 @@ export function EventDetailsPage({
 
           {/* Event Management Actions */}
           {isCreator && (
-            <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-              <h3 className="font-bold text-lg mb-4 text-[var(--app-foreground)]">Manage Event</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Button variant="outline" size="md" onClick={() => onEditAction && onEditAction(event)}>
-                  <Icon name="edit" size="sm" className="mr-2" />
-                  Edit Event
+            <div className="bg-[var(--app-card-bg)] rounded-xl p-4 border border-[var(--app-card-border)]">
+              <h3 className="font-bold text-base mb-3 text-[var(--app-foreground)]">Manage Event</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="text-xs px-2 py-1.5">
+                  <Icon name="edit" size="sm" className="mr-1" />
+                  <span className="hidden sm:inline">Edit Event</span>
+                  <span className="sm:hidden">Edit</span>
                 </Button>
                 
                 {onDownloadCSVAction && (
                   <Button 
                     variant="primary" 
-                    size="md" 
+                    size="sm" 
                     onClick={() => onDownloadCSVAction(event.id, event.title)}
-                    className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 font-semibold shadow-lg"
+                    className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 font-semibold shadow-lg text-xs px-2 py-1.5"
                   >
-                    <span className="mr-2 text-lg">📊</span>
-                    Download CSV
+                    <span className="mr-1 text-sm">📊</span>
+                    <span className="hidden sm:inline">Download CSV</span>
+                    <span className="sm:hidden">CSV</span>
                   </Button>
                 )}
                 
-                <Button variant="ghost" size="md" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="text-red-500 hover:bg-red-50 hover:text-red-600">
-                  <Icon name="trash" size="sm" className="mr-2" />
-                  Delete Event
+                <Button variant="ghost" size="sm" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="text-red-500 hover:bg-red-50 hover:text-red-600 text-xs px-2 py-1.5">
+                  <Icon name="trash" size="sm" className="mr-1" />
+                  <span className="hidden sm:inline">Delete Event</span>
+                  <span className="sm:hidden">Delete</span>
                 </Button>
               </div>
             </div>

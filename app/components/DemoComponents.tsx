@@ -183,7 +183,7 @@ export function Home({ setActiveTab }: HomeProps) {
 }
 
 type IconProps = {
-  name: "heart" | "star" | "check" | "plus" | "arrow-right" | "search" | "calendar" | "location" | "users" | "repeat" | "edit" | "trash" | "share" | "clock" | "mail" | "phone" | "trending" | "fire" | "chart";
+  name: "heart" | "star" | "check" | "plus" | "arrow-right" | "search" | "calendar" | "location" | "users" | "repeat" | "edit" | "trash" | "share" | "clock" | "mail" | "phone" | "trending" | "fire" | "chart" | "alert-triangle" | "refresh";
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -502,6 +502,41 @@ export function Icon({ name, size = "md", className = "" }: IconProps) {
         <line x1="18" y1="20" x2="18" y2="10" />
         <line x1="12" y1="20" x2="12" y2="4" />
         <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+    "alert-triangle": (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <title>Alert</title>
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+    refresh: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <title>Refresh</title>
+        <polyline points="23 4 23 10 17 10" />
+        <polyline points="1 20 1 14 7 14" />
+        <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10" />
+        <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14" />
       </svg>
     ),
   };

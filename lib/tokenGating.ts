@@ -3,6 +3,9 @@ import { base } from 'viem/chains';
 import { supabase } from './supabaseClient';
 import type { TokenRequirement, TokenGateResult, TokenVerification } from './events';
 
+// Re-export types for consumers of this module
+export type { TokenRequirement, TokenGateResult, TokenVerification } from './events';
+
 // Base network configuration
 export const BASE_CHAIN_ID = base.id;
 

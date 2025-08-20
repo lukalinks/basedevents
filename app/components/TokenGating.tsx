@@ -68,7 +68,7 @@ export function TokenGateSetup({ onTokenGateChange, initialValues }: TokenGateSe
       requiredTokenName: isTokenGated ? tokenName : undefined,
       tokenGateType: isTokenGated ? tokenType : undefined,
     });
-  }, [isTokenGated, tokenType, tokenAddress, requiredBalance, tokenSymbol, tokenName, onTokenGateChange]);
+  }, [isTokenGated, tokenType, tokenAddress, requiredBalance, tokenSymbol, tokenName]);
 
   const handlePopularTokenSelect = (token: typeof popularTokens[0]) => {
     setTokenAddress(token.address);

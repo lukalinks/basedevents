@@ -5,6 +5,9 @@
 // Cache for address to FID mappings
 const addressToFidCache = new Map<string, number>();
 
+// Cache for Farcaster profile data
+const farcasterProfileCache = new Map<string, any>();
+
 /**
  * Convert wallet address to Farcaster ID (FID)
  * This would typically use Farcaster API or a service like Neynar
@@ -42,6 +45,174 @@ export async function getAddressFid(address: string): Promise<number | null> {
   } catch (error) {
     console.error('Error getting FID for address:', address, error);
     return null;
+  }
+}
+
+/**
+ * Get Farcaster profile information for a user
+ */
+export async function getFarcasterProfile(address: string): Promise<{
+  username: string | null;
+  displayName: string | null;
+  avatar: string | null;
+  bio: string | null;
+  fid: number | null;
+  isActive: boolean;
+} | null> {
+  if (!address) return null;
+
+  // Check cache first
+  if (farcasterProfileCache.has(address)) {
+    return farcasterProfileCache.get(address);
+  }
+
+  try {
+    // Get FID first
+    const fid = await getAddressFid(address);
+    if (!fid) {
+      return {
+        username: null,
+        displayName: null,
+        avatar: null,
+        bio: null,
+        fid: null,
+        isActive: false
+      };
+    }
+
+    // Use Neynar API to get profile information
+    if (typeof window === 'undefined' && process.env.NEYNAR_API_KEY) {
+      const url = `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`;
+      const response = await fetch(url, {
+        headers: { 'api_key': process.env.NEYNAR_API_KEY as string },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const user = Array.isArray(data?.users) ? data.users[0] : undefined;
+        
+        if (user) {
+          const profile = {
+            username: user.username || null,
+            displayName: user.display_name || null,
+            avatar: user.pfp_url || null,
+            bio: user.profile?.bio?.text || null,
+            fid: user.fid,
+            isActive: true
+          };
+          
+          // Cache the result
+          farcasterProfileCache.set(address, profile);
+          return profile;
+        }
+      }
+    }
+
+    // Fallback: return basic info with FID
+    const basicProfile = {
+      username: null,
+      displayName: null,
+      avatar: null,
+      bio: null,
+      fid: fid,
+      isActive: true
+    };
+    
+    farcasterProfileCache.set(address, basicProfile);
+    return basicProfile;
+
+  } catch (error) {
+    console.error('Error getting Farcaster profile for address:', address, error);
+    return null;
+  }
+}
+
+/**
+ * Get comprehensive user profile information including Farcaster data
+ * This combines local profile data with Farcaster profile data
+ */
+export async function getComprehensiveUserProfile(
+  address: string,
+  localProfile?: {
+    name?: string;
+    bio?: string;
+    avatarUrl?: string;
+  }
+): Promise<{
+  displayName: string;
+  username: string | null;
+  avatar: string | null;
+  bio: string | null;
+  fid: number | null;
+  isFarcasterUser: boolean;
+  source: 'farcaster' | 'local' | 'fallback';
+}> {
+  if (!address) {
+    return {
+      displayName: localProfile?.name || 'Anonymous',
+      username: null,
+      avatar: localProfile?.avatarUrl || null,
+      bio: localProfile?.bio || null,
+      fid: null,
+      isFarcasterUser: false,
+      source: 'fallback'
+    };
+  }
+
+  try {
+    // Get Farcaster profile
+    const farcasterProfile = await getFarcasterProfile(address);
+    
+    if (farcasterProfile && farcasterProfile.isActive) {
+      // Prioritize Farcaster data
+      return {
+        displayName: farcasterProfile.displayName || farcasterProfile.username || localProfile?.name || 'Anonymous',
+        username: farcasterProfile.username,
+        avatar: farcasterProfile.avatar || localProfile?.avatarUrl || null,
+        bio: farcasterProfile.bio || localProfile?.bio || null,
+        fid: farcasterProfile.fid,
+        isFarcasterUser: true,
+        source: 'farcaster'
+      };
+    }
+    
+    // Fallback to local profile
+    if (localProfile?.name || localProfile?.bio || localProfile?.avatarUrl) {
+      return {
+        displayName: localProfile.name || 'Anonymous',
+        username: null,
+        avatar: localProfile.avatarUrl || null,
+        bio: localProfile.bio || null,
+        fid: null,
+        isFarcasterUser: false,
+        source: 'local'
+      };
+    }
+    
+    // Final fallback
+    return {
+      displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+      username: null,
+      avatar: null,
+      bio: null,
+      fid: null,
+      isFarcasterUser: false,
+      source: 'fallback'
+    };
+    
+  } catch (error) {
+    console.error('Error getting comprehensive user profile:', error);
+    
+    // Fallback to local profile or basic info
+    return {
+      displayName: localProfile?.name || `${address.slice(0, 6)}...${address.slice(-4)}`,
+      username: null,
+      avatar: localProfile?.avatarUrl || null,
+      bio: localProfile?.bio || null,
+      fid: null,
+      isFarcasterUser: false,
+      source: 'fallback'
+    };
   }
 }
 

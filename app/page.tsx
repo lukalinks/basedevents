@@ -28,6 +28,7 @@ import {
   EnhancedEventDetailsModal,
   EventRegistrationForm,
   UserNFTTicketsCollection,
+  MyEventsPage,
 } from "./components/EventComponents";
 import {
   createEvent,
@@ -49,6 +50,7 @@ import ProfileModal from "./components/ProfileModal";
 import { Host, getHostByAddress } from "../lib/hosts";
 import { getUserDisplayInfo } from "../lib/basenames";
 import { getUserNFTTickets } from "../lib/events";
+import { getComprehensiveUserProfile } from "../lib/farcaster";
 
 // NFT Count Display Component
 function NFTCountDisplay({ userAddress }: { userAddress: string }) {
@@ -130,6 +132,10 @@ function ProfilePage({
     isBaseName: boolean;
     baseName?: string;
     address: string;
+    username: string | null;
+    fid: number | null;
+    isFarcasterUser: boolean;
+    source: 'farcaster' | 'local' | 'fallback';
   } | null>(null);
 
   useEffect(() => {
@@ -140,24 +146,49 @@ function ProfilePage({
         const hostProfile = await getHostByAddress(address);
         setProfile(hostProfile);
         
-        // Get Base name and display info
-        const displayInfo = await getUserDisplayInfo(
+        // Get comprehensive user profile including Farcaster data
+        const comprehensiveProfile = await getComprehensiveUserProfile(
           address,
-          hostProfile?.name,
-          hostProfile?.avatarUrl
+          {
+            name: hostProfile?.name,
+            bio: hostProfile?.bio,
+            avatarUrl: hostProfile?.avatarUrl
+          }
         );
-        setUserDisplayInfo(displayInfo);
+        
+        // Combine with Base name info
+        const baseNameInfo = await getUserDisplayInfo(
+          address,
+          comprehensiveProfile.displayName,
+          comprehensiveProfile.avatar
+        );
+        
+        setUserDisplayInfo({
+          ...baseNameInfo,
+          username: comprehensiveProfile.username,
+          fid: comprehensiveProfile.fid,
+          isFarcasterUser: comprehensiveProfile.isFarcasterUser,
+          source: comprehensiveProfile.source
+        });
       } catch (error) {
         console.error('Error loading profile:', error);
         // Profile doesn't exist yet, that's okay
         setProfile(null);
         
-        // Still try to get Base name info
+        // Still try to get comprehensive profile info
         try {
-          const displayInfo = await getUserDisplayInfo(address);
-          setUserDisplayInfo(displayInfo);
-        } catch (baseError) {
-          console.error('Error loading Base name:', baseError);
+          const comprehensiveProfile = await getComprehensiveUserProfile(address);
+          const baseNameInfo = await getUserDisplayInfo(address);
+          
+          setUserDisplayInfo({
+            ...baseNameInfo,
+            username: comprehensiveProfile.username,
+            fid: comprehensiveProfile.fid,
+            isFarcasterUser: comprehensiveProfile.isFarcasterUser,
+            source: comprehensiveProfile.source
+          });
+        } catch (fallbackError) {
+          console.error('Error loading fallback profile:', fallbackError);
         }
       } finally {
         setLoadingProfile(false);
@@ -174,83 +205,128 @@ function ProfilePage({
   if (!address) return <div className="p-6 text-center text-[var(--app-foreground-muted)]">Connect your wallet to view your profile.</div>;
   
   return (
-    <div className="space-y-6">
-      <div className="bg-[var(--app-card-bg)] rounded-xl p-6 shadow mb-4">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-bold">Profile</h2>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Enhanced Profile Card */}
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+            Profile
+          </h2>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowProfileModal(true)}
             icon={<Icon name="edit" size="sm" />}
+            className="hover:bg-[var(--app-accent-light)] transition-colors"
           >
             Edit Profile
           </Button>
         </div>
         
         {loadingProfile ? (
-          <div className="flex items-center justify-center gap-3 py-8 text-[var(--app-foreground-muted)]">
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-current border-t-transparent"></div>
-            <span>Loading profile...</span>
+          <div className="flex items-center justify-center gap-3 py-12 text-[var(--app-foreground-muted)]">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-current border-t-transparent"></div>
+            <span className="text-lg">Loading profile...</span>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="flex items-start gap-6">
+          <div className="space-y-8">
+            <div className="flex flex-col lg:flex-row items-start gap-8">
+              {/* Avatar Section */}
+              <div className="flex-shrink-0">
               {userDisplayInfo?.avatar ? (
                 <img 
                   src={userDisplayInfo.avatar} 
                   alt="Profile avatar" 
-                  className="w-20 h-20 rounded-full object-cover border-4 border-[var(--app-card-border)] shadow-lg"
+                    className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover border-4 border-[var(--app-card-border)] shadow-2xl"
                 />
               ) : (
-                <div className="w-20 h-20 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-accent)]/80 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  <div className="w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-[var(--app-accent)] via-[var(--app-token-gate)] to-[var(--app-payment)] rounded-2xl flex items-center justify-center text-white font-bold text-3xl lg:text-4xl shadow-2xl">
                   {userDisplayInfo?.displayName ? userDisplayInfo.displayName.charAt(0).toUpperCase() : address.slice(2, 4).toUpperCase()}
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <div className="mb-2">
-                  <h3 className="font-bold text-xl text-[var(--app-foreground)] mb-1">
+              </div>
+              
+              {/* Profile Info */}
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="space-y-3">
+                  <h3 className="font-bold text-2xl lg:text-3xl text-[var(--app-foreground)]">
                     {userDisplayInfo?.displayName || 'Anonymous User'}
                   </h3>
-                  {userDisplayInfo?.isBaseName && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  
+                  {/* Profile Source Badges */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {userDisplayInfo?.isBaseName && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Base Name
+                        Base Name Verified
                       </span>
+                    )}
+                    
+                    {userDisplayInfo?.isFarcasterUser && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+                        </svg>
+                        Farcaster User
+                      </span>
+                    )}
+                    
+                    {userDisplayInfo?.source === 'farcaster' && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Profile from Farcaster
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Username Display */}
+                  {userDisplayInfo?.username && (
+                    <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 text-sm font-semibold border border-purple-200">
+                      @{userDisplayInfo.username}
+                    </div>
+                  )}
+                  
+                  {userDisplayInfo?.baseName && userDisplayInfo.isBaseName && (
+                    <div className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm font-semibold border border-blue-200">
+                      {userDisplayInfo.baseName}
                     </div>
                   )}
                 </div>
-                <div className="text-sm text-[var(--app-foreground-muted)] break-all font-mono bg-[var(--app-gray)] px-3 py-2 rounded-lg">
+                
+                <div className="bg-[var(--app-gray)] px-4 py-3 rounded-xl border border-[var(--app-card-border)] font-mono text-sm break-all">
                   {address}
                 </div>
+                
                 <NFTCountDisplay userAddress={address} />
+                
                 {profile?.bio && (
-                  <div className="mt-4 bg-[var(--app-gray)] rounded-xl p-4 border border-[var(--app-card-border)]">
-                    <p className="text-[var(--app-foreground-muted)] leading-relaxed">{profile.bio}</p>
+                  <div className="bg-[var(--app-gray)] rounded-xl p-6 border border-[var(--app-card-border)]">
+                    <p className="text-[var(--app-foreground-muted)] leading-relaxed text-lg">{profile.bio}</p>
                   </div>
                 )}
               </div>
             </div>
             
             {!profile?.name && !profile?.bio && (
-              <div className="text-center py-8 bg-gradient-to-r from-[var(--app-accent-light)]/10 to-transparent rounded-xl border border-[var(--app-accent-light)]/20">
-                <div className="mb-4">
-                  <div className="w-12 h-12 bg-[var(--app-accent)]/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-6 h-6 text-[var(--app-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center py-12 bg-gradient-to-r from-[var(--app-accent-light)]/10 to-transparent rounded-2xl border-2 border-dashed border-[var(--app-accent-light)]/30">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <p className="text-[var(--app-foreground)] font-medium mb-1">Complete Your Profile</p>
-                  <p className="text-sm text-[var(--app-foreground-muted)]">Add your name and bio to personalize your experience</p>
+                  <p className="text-[var(--app-foreground)] font-semibold text-xl mb-2">Complete Your Profile</p>
+                  <p className="text-[var(--app-foreground-muted)] text-lg">Add your name and bio to personalize your experience</p>
                 </div>
                 <Button
                   variant="primary"
-                  size="md"
+                  size="lg"
                   onClick={() => setShowProfileModal(true)}
-                  className="font-medium"
+                  className="font-semibold text-lg px-8 py-3"
                 >
                   Get Started
                 </Button>
@@ -261,70 +337,71 @@ function ProfilePage({
       </div>
       
       <div className="space-y-8">
-        {/* Event Management Summary */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Enhanced Event Management Summary */}
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border border-blue-200 shadow-lg">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h3 className="font-bold text-xl text-gray-900">Event Management</h3>
-              <p className="text-gray-600 text-sm">Manage your events with ease</p>
+              <h3 className="font-bold text-2xl text-gray-900">Event Management</h3>
+              <p className="text-gray-600">Manage your events with ease</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-blue-100">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="text-green-600 text-sm font-bold">✓</span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">Active Events</span>
+                <span className="text-sm font-semibold text-gray-900">Active Events</span>
               </div>
-              <span className="text-2xl font-bold text-green-600">
+              <span className="text-3xl font-bold text-green-600">
                 {events.filter(e => e.creator === address && e.status !== 'cancelled').length}
               </span>
             </div>
             
-            <div className="bg-white rounded-lg p-4 border border-blue-100">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
-                  <span className="text-orange-600 text-xs">⚠️</span>
+            <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="text-orange-600 text-sm font-bold">⚠️</span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">Cancelled</span>
+                <span className="text-sm font-semibold text-gray-900">Cancelled</span>
               </div>
-              <span className="text-2xl font-bold text-orange-600">
+              <span className="text-3xl font-bold text-orange-600">
                 {events.filter(e => e.creator === address && e.status === 'cancelled').length}
               </span>
             </div>
             
-            <div className="bg-white rounded-lg p-4 border border-blue-100">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-xs">👥</span>
+            <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-blue-600 text-sm font-bold">👥</span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">Total RSVPs</span>
+                <span className="text-sm font-semibold text-gray-900">Total RSVPs</span>
               </div>
-              <span className="text-2xl font-bold text-blue-600">
+              <span className="text-3xl font-bold text-blue-600">
                 {events.filter(e => e.creator === address).reduce((sum, event) => sum + event.attendees.length, 0)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[var(--app-accent)]/20 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-[var(--app-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Enhanced Events I Created Section */}
+        <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                 </svg>
               </div>
-              <h3 className="font-bold text-lg text-[var(--app-foreground)]">Events I Created</h3>
+              <h3 className="font-bold text-xl text-[var(--app-foreground)]">Events I Created</h3>
             </div>
-            <div className="text-sm text-[var(--app-foreground-muted)]">
+            <div className="text-sm text-[var(--app-foreground-muted)] bg-[var(--app-gray)] px-3 py-1 rounded-full">
               Click events to manage them
             </div>
           </div>
@@ -341,14 +418,15 @@ function ProfilePage({
         />
       </div>
         
-        <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Enhanced Events I RSVP'd To Section */}
+        <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="font-bold text-lg text-[var(--app-foreground)]">Events I RSVP&apos;d To</h3>
+            <h3 className="font-bold text-xl text-[var(--app-foreground)]">Events I RSVP&apos;d To</h3>
           </div>
         <EnhancedEventList
           events={events.filter(e => e.attendees.includes(address || "") && e.creator !== address)}
@@ -359,8 +437,8 @@ function ProfilePage({
         />
       </div>
 
-        {/* NFT Tickets Collection */}
-        <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
+        {/* Enhanced NFT Tickets Collection */}
+        <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
           <UserNFTTicketsCollection userAddress={address} />
         </div>
       </div>
@@ -464,16 +542,33 @@ function HostsPage({ events }: { events: Event[] }) {
   };
 
   return (
-    <div className="space-y-8 p-4 animate-fade-in">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-2xl font-bold tracking-tight">Recent Hosts</h2>
-        <div className="flex-1 border-t border-[var(--app-card-border)] ml-4" />
+    <div className="space-y-8 animate-fade-in">
+      {/* Enhanced Header Section */}
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+            </svg>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+              Event Hosts
+            </h2>
+            <p className="text-[var(--app-foreground-muted)] text-lg">Discover the community's most active event creators</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Hosts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {hostStats.length === 0 && (
-          <div className="text-center py-8 text-[var(--app-foreground-muted)] col-span-full">
-            <Icon name="users" size="lg" className="mx-auto mb-2 opacity-50" />
-            <p>No hosts found.</p>
+          <div className="text-center py-16 text-[var(--app-foreground-muted)] col-span-full">
+            <div className="w-16 h-16 bg-[var(--app-gray)] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Icon name="users" size="lg" className="opacity-50" />
+            </div>
+            <p className="text-lg font-medium">No hosts found</p>
+            <p className="text-sm">Be the first to create an event!</p>
           </div>
         )}
         {hostStats.map((host, idx) => {
@@ -482,46 +577,46 @@ function HostsPage({ events }: { events: Event[] }) {
           return (
             <div
               key={host.creator}
-              className="bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-shadow flex flex-col gap-3 relative group"
+              className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border border-[var(--app-glass-border)] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col gap-4 relative group hover:scale-[1.02]"
             >
-              <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-start gap-6">
                 {displayInfo?.avatar ? (
-                  <img src={displayInfo.avatar} alt="Host avatar" className="w-14 h-14 rounded-full object-cover border-2 border-[var(--app-accent)] shadow" />
+                  <img src={displayInfo.avatar} alt="Host avatar" className="w-16 h-16 rounded-2xl object-cover border-2 border-[var(--app-accent)] shadow-lg" />
                 ) : (
-                  <div className="w-14 h-14 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-accent)]/80 rounded-full flex items-center justify-center text-white font-bold text-xl shadow">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[var(--app-accent)] via-[var(--app-token-gate)] to-[var(--app-payment)] rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                     {displayInfo?.displayName ? displayInfo.displayName.charAt(0).toUpperCase() : host.creator.slice(2, 4).toUpperCase()}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-lg text-[var(--app-foreground)] truncate">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-bold text-xl text-[var(--app-foreground)] truncate">
                       {displayInfo?.displayName || formatAddress(host.creator)}
                     </span>
                     {displayInfo?.isBaseName && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Base
+                        Base Verified
                       </span>
                     )}
                   </div>
-                  {displayInfo?.baseName && (
-                    <div className="inline-block mt-0.5 mb-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                  {displayInfo?.baseName && displayInfo.isBaseName && (
+                    <div className="inline-block mb-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-sm font-semibold border border-blue-200">
                       {displayInfo.baseName}
                     </div>
                   )}
-                  <div className="text-xs text-[var(--app-foreground-muted)] font-mono break-all bg-[var(--app-gray)] px-2 py-1 rounded">
+                  <div className="text-sm text-[var(--app-foreground-muted)] font-mono break-all bg-[var(--app-gray)] px-3 py-2 rounded-xl border border-[var(--app-card-border)]">
                     {formatAddress(host.creator)}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 mt-2">
-                <div className="flex items-center gap-1 bg-[var(--app-accent-light)] text-[var(--app-accent)] px-3 py-1 rounded-full text-xs font-semibold">
+              <div className="flex gap-4 mt-2">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-[var(--app-accent-light)] to-[var(--app-token-gate-bg)] text-[var(--app-accent)] px-4 py-2 rounded-xl text-sm font-semibold border border-[var(--app-accent)]/20">
                   <Icon name="star" size="sm" />
                   {host.eventCount} Events
                 </div>
-                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold min-w-[80px] justify-center">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-4 py-2 rounded-xl text-sm font-semibold border border-green-200">
                   <Icon name="users" size="sm" />
                   {loadingSignups && signupCount === undefined ? (
                     <span className="animate-pulse">...</span>
@@ -530,9 +625,6 @@ function HostsPage({ events }: { events: Event[] }) {
                   )} Signups
                 </div>
               </div>
-              {idx < hostStats.length - 1 && (
-                <div className="absolute left-0 right-0 bottom-0 h-px bg-[var(--app-card-border)] opacity-40 group-hover:opacity-80 transition-opacity" />
-              )}
             </div>
           );
         })}
@@ -714,25 +806,45 @@ export default function App() {
         }
       }
 
-      // Optional: mint free NFT ticket if configured
-      if (!showRegistrationForm.isPaid) {
+      // Optional: mint NFT ticket if configured (for both free and paid events)
+      {
         const ticketContract = process.env.NEXT_PUBLIC_TICKET_NFT as `0x${string}` | undefined
-        if (ticketContract) {
+        if (ticketContract && typeof window !== 'undefined' && (window as any).ethereum && address) {
           try {
             const { ethers } = await import('ethers')
             const ethereum = (window as any).ethereum
+            // Ensure Base
+            const baseChainHex = '0x2105'
+            try {
+              const current = await ethereum.request({ method: 'eth_chainId' })
+              if (current?.toLowerCase() !== baseChainHex) {
+                await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: baseChainHex }] })
+              }
+            } catch {}
+
             const provider = new ethers.providers.Web3Provider(ethereum)
             const signer = provider.getSigner()
             const abi = [
+              'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
               'function mintTicket(address to, uint256 eventId, string tokenURI) external returns (uint256)'
             ]
             const contract = new ethers.Contract(ticketContract, abi, signer)
             const tokenUri = '' // Optional: point to IPFS ticket metadata
             const eventNumericId = Math.abs([...showRegistrationForm.id].reduce((acc, c) => acc + c.charCodeAt(0), 0))
             const tx = await contract.mintTicket(address, eventNumericId, tokenUri)
+            let mintedTokenId = '0'
+            try {
+              const receipt = await tx.wait()
+              const transferTopic = ethers.utils.id('Transfer(address,address,uint256)')
+              const log = receipt?.logs?.find((l: any) => l.address?.toLowerCase() === ticketContract.toLowerCase() && l.topics?.[0] === transferTopic)
+              if (log && log.topics && log.topics.length >= 4) {
+                mintedTokenId = ethers.BigNumber.from(log.topics[3]).toString()
+              }
+            } catch {}
+
             onchain = {
               ...onchain,
-              ticketNft: { contract: ticketContract, tokenId: '0', txHash: tx.hash as `0x${string}` }
+              ticketNft: { contract: ticketContract, tokenId: mintedTokenId, txHash: tx.hash as `0x${string}` }
             }
           } catch (e) {
             console.warn('Ticket NFT mint skipped/failed:', e)
@@ -1170,12 +1282,20 @@ export default function App() {
   const showCreateModal = activeTab === "create";
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[var(--app-background)] to-[var(--app-gray)] font-sans text-[var(--app-foreground)]">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--app-card-border)] bg-[var(--app-card-bg)] shadow-sm sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded" />
-          <span className="font-bold text-lg tracking-tight">BasedEvents</span>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-[var(--app-background)] via-[var(--app-gray)] to-[var(--app-background)] font-sans text-[var(--app-foreground)]">
+      {/* Enhanced Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-card-border)] bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm shadow-lg sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-xl shadow-md" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-full border-2 border-white"></div>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-xl tracking-tight text-white">
+              BasedEvents
+            </span>
+            <span className="text-xs text-[var(--app-foreground-muted)]">Find Your Next Event</span>
+          </div>
         </div>
         <Wallet className="z-10">
           <ConnectWallet>
@@ -1193,65 +1313,137 @@ export default function App() {
         </Wallet>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 px-4 pb-20 pt-4 max-w-md mx-auto w-full overflow-x-hidden">
+      {/* Enhanced Main content */}
+      <main className="flex-1 px-6 pb-24 pt-6 max-w-4xl mx-auto w-full overflow-x-hidden">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent rounded-full text-[var(--app-accent)]"></div>
-            <p className="mt-4 text-[var(--app-foreground-muted)]">Loading events...</p>
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="relative">
+              <div className="animate-spin inline-block w-12 h-12 border-4 border-[var(--app-accent)] border-t-transparent rounded-full"></div>
+              <div className="absolute inset-0 animate-ping inline-block w-12 h-12 border-2 border-[var(--app-accent)] rounded-full opacity-20"></div>
+            </div>
+            <p className="mt-6 text-lg text-[var(--app-foreground-muted)] font-medium">Loading events...</p>
+            <p className="mt-2 text-sm text-[var(--app-foreground-muted)]">Please wait while we fetch the latest events</p>
           </div>
         )}
         
-        {/* Error State */}
+        {/* Enhanced Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-6 mb-6 shadow-lg">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-red-800 mb-2">Error Loading Events</h3>
+                <p className="text-red-700 text-sm mb-4">{error}</p>
             <button 
               onClick={loadEvents}
-              className="mt-2 text-red-700 underline text-sm hover:no-underline"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
               Try again
             </button>
+              </div>
+            </div>
           </div>
         )}
         
-        {/* Wallet Error State */}
+        {/* Enhanced Wallet Error State */}
         {walletError && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-yellow-700 text-sm">{walletError}</p>
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-6 mb-6 shadow-lg">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-yellow-800 mb-2">Wallet Connection Issue</h3>
+                <p className="text-yellow-700 text-sm mb-4">{walletError}</p>
             <button 
               onClick={() => setWalletError(null)}
-              className="mt-2 text-yellow-800 underline text-sm hover:no-underline"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
             >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
               Dismiss
             </button>
+              </div>
+            </div>
           </div>
         )}
         
         {!isLoading && !error && activeTab === "home" && (
           <>
-            {address ? (
-              <div className="flex justify-end mb-4">
-                <Button
-                  variant="primary"
-                  icon={<Icon name="plus" size="sm" />}
-                  onClick={() => {
-                    setActiveTab("create");
-                    setEditingEvent(null);
-                  }}
-                >
-                  Create Event
-                </Button>
+            {/* Enhanced Welcome Section */}
+            <div className="mb-4">
+              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                  <div className="flex-1">
+
+                    <p className="text-lg text-[var(--app-foreground-muted)] mb-4">
+                      Discover and create amazing events on Base.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="font-medium text-blue-800">NFT Tickets</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="font-medium text-gray-800">Token Gating</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                        <span className="font-medium text-blue-800">USDC Payments</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-blue-600 text-sm text-center">
-                  Connect your wallet to create events and RSVP
-                </p>
+            </div>
+
+            {/* Events Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-[var(--app-foreground)]">Discover Events</h2>
+                {address ? (
+                  <Button
+                    variant="primary"
+                    icon={<Icon name="plus" size="md" />}
+                    onClick={() => {
+                      setActiveTab("create");
+                      setEditingEvent(null);
+                    }}
+                    className="px-6 py-2 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    Create Event
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-3 py-1.5">
+                    <div className="w-5 h-5 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <span className="text-blue-800 font-medium text-sm">Connect Wallet</span>
+                  </div>
+                )}
               </div>
-            )}
+              
             {isLoading && events.length === 0 ? (
-              <div className="flex justify-center items-center py-8">
+                <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--app-accent)]"></div>
                 <span className="ml-2 text-[var(--app-foreground-muted)]">Loading events...</span>
               </div>
@@ -1270,6 +1462,7 @@ export default function App() {
                 selectedTags={selectedTags}
               />
             )}
+            </div>
             {selectedEvent && (
               <EnhancedEventDetailsModal
                 event={selectedEvent}
@@ -1288,35 +1481,16 @@ export default function App() {
         )}
         {!isLoading && !error && activeTab === "my-events" && (
           <>
-            <h2 className="text-lg font-semibold mb-4">Events I Created</h2>
-            <EnhancedEventList
-              events={events.filter(e => e.creator === address) as LibEvent[]}
-              onRSVPAction={handleRSVP}
-              userAddress={address}
-              onEventClickAction={setSelectedEvent}
-              onCancelRSVPAction={handleCancelRSVP}
-              onDeleteEventAction={handleDeleteEvent}
-              onEditEventAction={handleEditEvent}
-              onDownloadCSVAction={handleDownloadCSV}
-              onSearchAction={handleSearch}
-              searchQuery=""
-              selectedTags={[]}
-              showSearch={false}
-            />
-            <div className="my-6" />
-            <h2 className="text-lg font-semibold mb-4">Events I RSVP&apos;d To</h2>
-            <EnhancedEventList
-              events={events.filter(e => e.attendees.includes(address || "") && e.creator !== address) as LibEvent[]}
-              onRSVPAction={handleRSVP}
-              userAddress={address}
-              onEventClickAction={setSelectedEvent}
-              onCancelRSVPAction={handleCancelRSVP}
-              onDeleteEventAction={handleDeleteEvent}
-              onEditEventAction={handleEditEvent}
-              onSearchAction={handleSearch}
-              searchQuery=""
-              selectedTags={[]}
-              showSearch={false}
+            <MyEventsPage
+              address={address}
+              events={events}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onCancelEvent={handleCancelEvent}
+              onDownloadCSV={handleDownloadCSV}
+              onEventClick={setSelectedEvent}
+              onRSVP={handleRSVP}
+              onCancelRSVP={handleCancelRSVP}
             />
             {selectedEvent && (
               <EnhancedEventDetailsModal
@@ -1346,19 +1520,29 @@ export default function App() {
           />
         )}
         {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
-        {/* Create Event Modal */}
+        {/* Enhanced Create Event Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-            <div className="bg-[var(--app-card-bg)] rounded-xl shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative border border-[var(--app-glass-border)]">
               <button
-                className="absolute top-2 right-2 text-2xl text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]"
+                className="absolute top-4 right-4 w-8 h-8 bg-[var(--app-gray)] hover:bg-[var(--app-gray-dark)] rounded-full flex items-center justify-center text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-colors"
                 onClick={() => {
                   setActiveTab("home");
                   setEditingEvent(null);
                 }}
               >
-                ×
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+                  {editingEvent ? 'Edit Event' : 'Create New Event'}
+                </h2>
+                <p className="text-[var(--app-foreground-muted)] mt-2">
+                  {editingEvent ? 'Update your event details below' : 'Fill in the details to create your event'}
+                </p>
+              </div>
               <EnhancedEventForm
                 onSubmitAction={editingEvent ? handleUpdateEvent : handleAddEvent}
                 onCancelAction={() => {
@@ -1382,19 +1566,35 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-lg flex justify-around items-center h-16 max-w-md mx-auto w-full">
+      {/* Enhanced Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-2xl flex justify-around items-center h-20 max-w-4xl mx-auto w-full">
         {navItems.map((item) => (
           <button
             key={item.key}
-            className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${activeTab === item.key ? "text-[var(--app-accent)]" : "text-[var(--app-foreground-muted)]"}`}
+            className={`flex flex-col items-center justify-center flex-1 py-3 transition-all duration-300 relative group ${
+              activeTab === item.key 
+                ? "text-[var(--app-accent)]" 
+                : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]"
+            }`}
             onClick={() => {
               setActiveTab(item.key);
               if (item.key === "create") setEditingEvent(null);
             }}
           >
+            <div className={`relative ${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
             {item.icon}
-            <span className="text-xs mt-1">{item.label}</span>
+              {activeTab === item.key && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-[var(--app-accent)] rounded-full animate-pulse"></div>
+              )}
+            </div>
+            <span className={`text-xs mt-1 font-medium transition-all duration-300 ${
+              activeTab === item.key ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
+            }`}>
+              {item.label}
+            </span>
+            {activeTab === item.key && (
+              <div className="absolute bottom-0 w-8 h-1 bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-t-full"></div>
+            )}
           </button>
         ))}
       </nav>

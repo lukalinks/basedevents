@@ -9,3 +9,5 @@ export { ConfirmationModal } from './ConfirmationModal';
 export { MyEventsPage } from './MyEventsPage';
 export { EnhancedEventCard } from './EnhancedEventCard';
 export { EventSharing } from './EventSharing';
+export { default as ComposeCastButton } from './ComposeCastButton';
+export { default as ComposeCastExample } from './ComposeCastExample';

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Icon } from "../DemoComponents";
 import { EventRegistration } from "@/lib/events";
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // User NFT Tickets Collection Component
 export function UserNFTTicketsCollection({ 
@@ -13,6 +14,7 @@ export function UserNFTTicketsCollection({
   const [nftTickets, setNftTickets] = useState<EventRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const openUrl = useOpenUrl();
 
   useEffect(() => {
     if (!userAddress) {
@@ -167,22 +169,18 @@ export function UserNFTTicketsCollection({
                   </div>
                   
                   <div className="flex items-center gap-2 mt-2">
-                    <a
-                      href={`https://basescan.org/tx/${ticket.ticketNft.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => openUrl(`https://basescan.org/tx/${ticket.ticketNft.txHash}`)}
                       className="flex items-center gap-1 text-xs text-[var(--app-accent)] hover:underline"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                       View on BaseScan
-                    </a>
+                    </button>
                     
-                    <a
-                      href={`https://basescan.org/token/${ticket.ticketNft.contract}?a=${ticket.ticketNft.tokenId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => openUrl(`https://basescan.org/token/${ticket.ticketNft.contract}?a=${ticket.ticketNft.tokenId}`)}
                       className="flex items-center gap-1 text-xs text-[var(--app-accent)] hover:underline"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +188,7 @@ export function UserNFTTicketsCollection({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       View NFT
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}

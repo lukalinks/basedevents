@@ -2,6 +2,7 @@
 
 import { Icon } from './DemoComponents';
 import type { Event, EventRegistration } from '@/lib/events';
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 interface OnchainEventBadgesProps {
   event: Event;
@@ -88,6 +89,8 @@ interface OnchainPaymentStatusProps {
 }
 
 export function OnchainPaymentStatus({ event, registration, showDetails = false }: OnchainPaymentStatusProps) {
+  const openUrl = useOpenUrl();
+
   if (!event.isPaid && !registration?.paymentTxHash) return null;
 
   const hasPayment = !!registration?.paymentTxHash;
@@ -137,7 +140,7 @@ export function OnchainPaymentStatus({ event, registration, showDetails = false 
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-gray-600">Transaction:</span>
             <button
-              onClick={() => window.open(`https://basescan.org/tx/${registration.paymentTxHash}`, '_blank')}
+              onClick={() => openUrl(`https://basescan.org/tx/${registration.paymentTxHash}`)}
               className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border hover:bg-gray-200 transition-colors"
             >
               {registration.paymentTxHash.slice(0, 10)}...{registration.paymentTxHash.slice(-8)}
@@ -155,6 +158,8 @@ interface OnchainNFTStatusProps {
 }
 
 export function OnchainNFTStatus({ registration, showDetails = false }: OnchainNFTStatusProps) {
+  const openUrl = useOpenUrl();
+
   if (!registration?.ticketNft?.txHash) return null;
 
   const { ticketNft } = registration;
@@ -192,7 +197,7 @@ export function OnchainNFTStatus({ registration, showDetails = false }: OnchainN
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-gray-600">Contract:</span>
             <button
-              onClick={() => window.open(`https://basescan.org/address/${ticketNft.contract}`, '_blank')}
+              onClick={() => openUrl(`https://basescan.org/address/${ticketNft.contract}`)}
               className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border hover:bg-gray-200 transition-colors"
             >
               {ticketNft.contract.slice(0, 8)}...{ticketNft.contract.slice(-6)}
@@ -201,7 +206,7 @@ export function OnchainNFTStatus({ registration, showDetails = false }: OnchainN
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-gray-600">Mint Tx:</span>
             <button
-              onClick={() => window.open(`https://basescan.org/tx/${ticketNft.txHash}`, '_blank')}
+              onClick={() => openUrl(`https://basescan.org/tx/${ticketNft.txHash}`)}
               className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border hover:bg-gray-200 transition-colors"
             >
               {ticketNft.txHash.slice(0, 8)}...{ticketNft.txHash.slice(-6)}

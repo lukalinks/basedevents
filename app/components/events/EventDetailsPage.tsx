@@ -47,14 +47,22 @@ export function EventDetailsPage({
 
   // Farcaster share helper
   const openUrl = useOpenUrl();
-  const openFarcasterCompose = useCallback((text: string, embedUrl?: string) => {
-    const base = 'https://warpcast.com/~/compose';
-    const params = new URLSearchParams({ text });
-    if (embedUrl) {
-      params.append('embeds[]', embedUrl);
+  const openFarcasterCompose = useCallback(async (text: string, embedUrl?: string) => {
+    try {
+      // Try to use Farcaster SDK first
+      const { composeCast } = await import('../../../lib/farcaster-sdk');
+      await composeCast(text, embedUrl ? [embedUrl] : undefined);
+    } catch (error) {
+      console.warn('Farcaster SDK not available, using fallback:', error);
+      // Fallback to URL-based compose
+      const base = 'https://warpcast.com/~/compose';
+      const params = new URLSearchParams({ text });
+      if (embedUrl) {
+        params.append('embeds[]', embedUrl);
+      }
+      const composeUrl = `${base}?${params.toString()}`;
+      openUrl(composeUrl);
     }
-    const composeUrl = `${base}?${params.toString()}`;
-    openUrl(composeUrl);
   }, [openUrl]);
 
   // Enhanced Farcaster sharing with event details
@@ -616,27 +624,20 @@ export function EventDetailsPage({
             )}
           </div>
 
-          {/* Calendar Integration */}
-          <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-            <h3 className="font-bold text-lg mb-4 text-[var(--app-foreground)]">Add to Calendar</h3>
-            <div className="space-y-2">
-              <a
-                href={getGoogleCalendarUrl(event)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#4285F4] text-white text-sm font-semibold hover:bg-[#357ae8] transition"
-              >
-                <Icon name="calendar" size="sm" className="mr-2" /> Google Calendar
-              </a>
-              <a
-                href={getOutlookCalendarUrl(event)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#0072C6] text-white text-sm font-semibold hover:bg-[#005fa3] transition"
-              >
-                <Icon name="calendar" size="sm" className="mr-2" /> Outlook Calendar
-              </a>
-            </div>
+          {/* Calendar Integration Buttons */}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => openUrl(getGoogleCalendarUrl(event))}
+              className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#4285F4] text-white text-xs font-semibold hover:bg-[#357ae8] transition"
+            >
+              <Icon name="calendar" size="sm" className="mr-1" /> Google Calendar
+            </button>
+            <button
+              onClick={() => openUrl(getOutlookCalendarUrl(event))}
+              className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#0072C6] text-white text-xs font-semibold hover:bg-[#005fa3] transition"
+            >
+              <Icon name="calendar" size="sm" className="mr-1" /> Outlook Calendar
+            </button>
           </div>
 
           {/* Attendee List for Event Hosts */}

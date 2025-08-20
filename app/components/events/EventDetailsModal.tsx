@@ -6,6 +6,7 @@ import { Event, EventComment, addEventComment, getEventComments, isUserRegistere
 import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary, OnchainEventBadges } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // Enhanced Event Details Modal with comments
 export function EnhancedEventDetailsModal({ 
@@ -39,6 +40,7 @@ export function EnhancedEventDetailsModal({
   const [showAttendees, setShowAttendees] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [registrationLoading, setRegistrationLoading] = useState(true);
+  const openUrl = useOpenUrl();
 
   useEffect(() => {
     if (event) {
@@ -393,22 +395,18 @@ export function EnhancedEventDetailsModal({
           
           {/* Calendar Integration Buttons */}
           <div className="flex gap-2 mt-2">
-            <a
-              href={getGoogleCalendarUrl(event)}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openUrl(getGoogleCalendarUrl(event))}
               className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#4285F4] text-white text-xs font-semibold hover:bg-[#357ae8] transition"
             >
               <Icon name="calendar" size="sm" className="mr-1" /> Google Calendar
-            </a>
-            <a
-              href={getOutlookCalendarUrl(event)}
-              target="_blank"
-              rel="noopener noreferrer"
+            </button>
+            <button
+              onClick={() => openUrl(getOutlookCalendarUrl(event))}
               className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#0072C6] text-white text-xs font-semibold hover:bg-[#005fa3] transition"
             >
               <Icon name="calendar" size="sm" className="mr-1" /> Outlook Calendar
-            </a>
+            </button>
           </div>
 
                         {/* Attendee List for Event Hosts */}

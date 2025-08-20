@@ -1,85 +1,120 @@
 # Event Components
 
-This directory contains modular event-related components that were extracted from the large `EventComponents.tsx` file for better maintainability and organization.
+This directory contains all the event-related components for the application.
 
 ## Components
 
-### `EventForm.tsx`
-- **EnhancedEventForm**: A comprehensive form for creating and editing events
-- Features: Image upload, token gating, payment settings, online/physical mode, tags, recurring events
+### Core Event Components
+- `EventForm.tsx` - Form for creating and editing events
+- `EventList.tsx` - List view of events
+- `EventDetailsModal.tsx` - Modal for viewing event details
+- `EventRegistrationForm.tsx` - Form for registering to events
+- `EventAttendeesList.tsx` - List of event attendees
+- `UserNFTTicketsCollection.tsx` - User's NFT ticket collection
+- `MyEventsPage.tsx` - Page for managing user's events
+- `EnhancedEventCard.tsx` - Enhanced event card component
 
-### `EventList.tsx`
-- **EnhancedEventList**: Displays a list of events with search, filtering, and management options
-- Features: Search functionality, location/tag filters, RSVP actions, event management buttons
+### Sharing Components
+- `EventSharing.tsx` - General event sharing component with multiple platforms
+- `ComposeCastButton.tsx` - **NEW** Farcaster-specific event sharing with link grabbing
+- `ComposeCastExample.tsx` - **NEW** Example usage of Farcaster event sharing
 
-### `EventDetailsModal.tsx`
-- **EnhancedEventDetailsModal**: Modal for viewing detailed event information
-- Features: Registration status, comments, attendee list, calendar integration, sharing
+## Farcaster Event Sharing
 
-### `EventRegistrationForm.tsx`
-- **EventRegistrationForm**: Form for users to register for events
-- Features: Payment integration, token verification, user details collection
+The new `ComposeCastButton` component provides specialized functionality for sharing events on Farcaster while automatically grabbing event links.
 
-### `EventAttendeesList.tsx`
-- **EventAttendeesList**: Displays detailed attendee information for event hosts
-- Features: User display info, registration details, Base Name integration
+### Features
 
-### `UserNFTTicketsCollection.tsx`
-- **UserNFTTicketsCollection**: Shows user's collected NFT event tickets
-- Features: NFT display, blockchain links, collection management
+- **Automatic Link Generation**: Creates unique URLs for each event
+- **Rich Metadata**: Includes event details, pricing, and token gating info
+- **Embed Support**: Embeds event images and URLs for better previews
+- **Analytics Tracking**: Stores sharing data for engagement metrics
+- **Multiple Variants**: Achievement sharing, Frame sharing, and compact modes
 
-### `ConfirmationModal.tsx`
-- **ConfirmationModal**: Reusable confirmation dialog for destructive actions
-- Features: Warning/danger variants, customizable messages
+### Usage
 
-## Usage
+```tsx
+import { ComposeCastButton } from '@/app/components/events';
 
-### Import individual components:
-```typescript
-import { EnhancedEventForm } from '@/components/events/EventForm';
-import { EnhancedEventList } from '@/components/events/EventList';
+// Basic usage
+<ComposeCastButton event={eventData} />
+
+// Achievement sharing
+<ComposeCastButton event={eventData} variant="achievement" />
+
+// Frame sharing with embeds
+<ComposeCastButton event={eventData} variant="frame" />
+
+// Compact mode
+<ComposeCastButton event={eventData} variant="compact" />
 ```
 
-### Import from the events index:
-```typescript
-import { 
-  EnhancedEventForm, 
-  EnhancedEventList,
-  EventRegistrationForm 
-} from '@/components/events';
+### Event Link Grabbing
+
+When users share events within Farcaster, the component automatically:
+
+1. **Generates Event URLs**: Creates unique, shareable links for each event
+2. **Includes Rich Metadata**: Adds event details, pricing, and token gating information
+3. **Embeds Content**: Includes event images and URLs for better link previews
+4. **Tracks Analytics**: Stores sharing data for engagement metrics
+5. **Handles Fallbacks**: Provides graceful fallbacks when Farcaster sharing fails
+
+### Example Integration
+
+```tsx
+import { ComposeCastButton } from '@/app/components/events';
+
+function EventCard({ event }) {
+  return (
+    <div className="event-card">
+      <h3>{event.title}</h3>
+      <p>{event.description}</p>
+      
+      {/* Farcaster sharing with automatic link grabbing */}
+      <ComposeCastButton 
+        event={event} 
+        variant="achievement"
+        className="mt-4"
+      />
+    </div>
+  );
+}
 ```
 
-### Import from the main EventComponents (legacy):
-```typescript
-import { EnhancedEventForm } from '@/components/EventComponents';
+### Analytics
+
+The component automatically tracks sharing analytics:
+
+```javascript
+// Stored in localStorage
+const sharedEvents = JSON.parse(localStorage.getItem('farcasterSharedEvents') || '[]');
+
+// Example analytics data
+{
+  eventId: 'event-123',
+  eventTitle: 'Web3 Developer Meetup',
+  shareType: 'achievement',
+  timestamp: '2024-01-15T10:00:00Z',
+  eventUrl: 'https://yourapp.com/events/event-123',
+  platform: 'farcaster'
+}
 ```
 
-## Benefits of Modular Structure
+### Configuration
 
-1. **Maintainability**: Each component is focused on a single responsibility
-2. **Reusability**: Components can be imported individually as needed
-3. **Testing**: Easier to write unit tests for individual components
-4. **Performance**: Better tree-shaking and code splitting
-5. **Collaboration**: Multiple developers can work on different components simultaneously
-6. **Debugging**: Easier to locate and fix issues in specific components
+You can customize the sharing behavior by modifying the `ComposeCastButton` component:
 
-## File Structure
+- **Share Text**: Customize the text content for different sharing types
+- **Embeds**: Configure which content gets embedded in Farcaster posts
+- **Analytics**: Add custom analytics endpoints or modify tracking behavior
+- **Styling**: Customize the appearance using Tailwind classes
 
-```
-app/components/events/
-├── index.ts                    # Main exports
-├── README.md                   # This documentation
-├── EventForm.tsx              # Event creation/editing form
-├── EventList.tsx              # Event listing with search/filters
-├── EventDetailsModal.tsx      # Event details modal
-├── EventRegistrationForm.tsx  # User registration form
-├── EventAttendeesList.tsx     # Attendee management
-├── UserNFTTicketsCollection.tsx # NFT tickets display
-└── ConfirmationModal.tsx      # Confirmation dialogs
-```
+## Contributing
 
-## Migration Notes
+When adding new event components:
 
-The original `EventComponents.tsx` file has been refactored to re-export all components from this modular structure. This ensures backward compatibility while providing the benefits of modular organization.
-
-All existing imports from `@/components/EventComponents` will continue to work without changes.
+1. Follow the existing naming conventions
+2. Include TypeScript types for all props
+3. Add proper error handling
+4. Include loading states where appropriate
+5. Update this README with new component documentation

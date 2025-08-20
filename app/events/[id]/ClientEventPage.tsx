@@ -1,24 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useConnect } from 'wagmi';
-import { Wallet, ConnectWallet } from "@coinbase/onchainkit/wallet";
-import { Name } from "@coinbase/onchainkit/identity";
+import { useAccount } from 'wagmi';
+import { Wallet, ConnectWallet } from '@coinbase/onchainkit/wallet';
 import { useRouter } from 'next/navigation';
-import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useMiniKit } from '@coinbase/onchainkit/minikit';
 import { EventDetailsPage } from '@/app/components/events/EventDetailsPage';
 import { EventRegistrationForm } from '@/app/components/events/EventRegistrationForm';
 import { Event, registerForEvent, cancelRegistration, isUserRegisteredForEvent } from '@/lib/events';
 import { Button } from '@/app/components/DemoComponents';
-import { Icon } from '@/app/components/DemoComponents';
 
 export default function ClientEventPage({ event }: { event: Event }) {
   const { address } = useAccount();
-  const { connect, connectors } = useConnect();
   const { setFrameReady, isFrameReady } = useMiniKit();
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState('home');
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -34,14 +31,10 @@ export default function ClientEventPage({ event }: { event: Event }) {
 
   // Handle Farcaster Mini App initialization
   useEffect(() => {
-    if (isFrameReady && !address) {
-      // Auto-connect if in Farcaster environment
-      const connector = connectors.find(c => c.ready);
-      if (connector) {
-        connect({ connector });
-      }
+    if (isFrameReady) {
+      setFrameReady();
     }
-  }, [isFrameReady, address, connect, connectors]);
+  }, [isFrameReady, setFrameReady]);
 
   // Keep registration status in sync with database
   useEffect(() => {
@@ -54,7 +47,6 @@ export default function ClientEventPage({ event }: { event: Event }) {
           setIsRegistered(false);
         }
       } catch (e) {
-        // If check fails, default to not registered (UI will still function)
         setIsRegistered(false);
       }
     };
@@ -83,7 +75,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
     try {
       await registerForEvent(event.id, address, userDetails, onchain);
       setShowRegistrationForm(false);
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error('Registration failed:', error);
       alert(error?.message || 'Failed to register. Please try again.');
@@ -94,7 +86,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
     if (!address) return;
     try {
       await cancelRegistration(eventId, address);
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error('Cancel RSVP failed:', error);
       alert('Failed to cancel RSVP. Please try again.');
@@ -109,13 +101,12 @@ export default function ClientEventPage({ event }: { event: Event }) {
       month: 'long',
       day: 'numeric',
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
   const isCreator = address && event.creator === address;
   const isAttendee = address && isRegistered && !isCreator;
-  const canRSVP = address && !isCreator && !isAttendee;
   const isFull = event.maxAttendees && event.attendees.length >= event.maxAttendees;
 
   return (
@@ -125,11 +116,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
         {/* Background Image */}
         {event.imageUrl ? (
           <div className="absolute inset-0">
-            <img 
-              src={event.imageUrl} 
-              alt={event.title} 
-              className="w-full h-full object-cover"
-            />
+            <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
           </div>
         ) : (
@@ -137,7 +124,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
             <div className="absolute inset-0 bg-black/20"></div>
           </div>
         )}
-        
+
         {/* Floating Action Button */}
         <div className="absolute top-4 right-4 z-20">
           <button
@@ -159,9 +146,11 @@ export default function ClientEventPage({ event }: { event: Event }) {
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-500/90 text-white backdrop-blur-sm">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#2775CA" />
-                    <text x="12" y="16" textAnchor="middle" fontSize="10" fill="white">$</text>
+                    <text x="12" y="16" textAnchor="middle" fontSize="10" fill="white">
+                      $
+                    </text>
                   </svg>
-                  {event.priceUSDC ? `${event.priceUSDC} USDC` : "Paid Event"}
+                  {event.priceUSDC ? `${event.priceUSDC} USDC` : 'Paid Event'}
                 </span>
               )}
               {isFull && (
@@ -180,9 +169,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
             </div>
 
             {/* Event Title */}
-            <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">
-              {event.title}
-            </h1>
+            <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">{event.title}</h1>
 
             {/* Event Meta */}
             <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8 mb-6">
@@ -194,7 +181,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
                 </div>
                 <span className="text-lg font-medium">{formatDate(event.date, event.time)}</span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +252,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
                   )}
                 </>
               )}
-              
+
               <Button
                 variant="outline"
                 size="lg"
@@ -273,11 +260,7 @@ export default function ClientEventPage({ event }: { event: Event }) {
                   const eventUrl = `${window.location.origin}/events/${event.id}`;
                   const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
                   if (navigator.share) {
-                    navigator.share({ 
-                      title: event.title, 
-                      text: shareText,
-                      url: eventUrl
-                    });
+                    navigator.share({ title: event.title, text: shareText, url: eventUrl });
                   } else {
                     navigator.clipboard.writeText(`${shareText}\n\n${eventUrl}`).then(() => {
                       alert('Event link copied to clipboard!');
@@ -287,7 +270,12 @@ export default function ClientEventPage({ event }: { event: Event }) {
                 className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30 font-semibold px-8 py-4 text-lg"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                  />
                 </svg>
                 Share Event
               </Button>
@@ -297,51 +285,47 @@ export default function ClientEventPage({ event }: { event: Event }) {
       </div>
 
       {/* Sticky Header for Navigation */}
-      <header className={`sticky top-0 z-30 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200' 
-          : 'bg-transparent'
-      }`}>
+      <header
+        className={`sticky top-0 z-30 transition-all duration-300 ${
+          isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200' : 'bg-transparent'
+        }`}
+      >
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/')}
+              <button
+                onClick={() => router.push('/')}
                 className={`p-2 rounded-lg transition-colors ${
-                  isScrolled 
-                    ? 'hover:bg-gray-100 text-gray-700' 
-                    : 'hover:bg-white/20 text-white'
+                  isScrolled ? 'hover:bg-gray-100 text-gray-700' : 'hover:bg-white/20 text-white'
                 }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
               {isScrolled && (
-                <h2 className="text-lg font-semibold text-gray-900 truncate max-w-xs">
-                  {event.title}
-                </h2>
+                <h2 className="text-lg font-semibold text-gray-900 truncate max-w-xs">{event.title}</h2>
               )}
-          </div>
-          
+            </div>
+
             {/* Wallet Connection */}
-          <div className="flex items-center gap-2">
-            {address ? (
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                  isScrolled 
-                    ? 'bg-gray-100 text-gray-700' 
-                    : 'bg-white/20 backdrop-blur-sm text-white'
-                }`}>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="flex items-center gap-2">
+              {address ? (
+                <div
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                    isScrolled ? 'bg-gray-100 text-gray-700' : 'bg-white/20 backdrop-blur-sm text-white'
+                  }`}
+                >
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-sm font-medium">
-                  {address.slice(0, 6)}...{address.slice(-4)}
-                </span>
-              </div>
-            ) : (
-              <Wallet className="px-3 py-1.5 text-xs">
-                <ConnectWallet />
-              </Wallet>
-            )}
+                    {address.slice(0, 6)}...{address.slice(-4)}
+                  </span>
+                </div>
+              ) : (
+                <Wallet className="px-3 py-1.5 text-xs">
+                  <ConnectWallet />
+                </Wallet>
+              )}
             </div>
           </div>
         </div>

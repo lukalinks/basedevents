@@ -10,10 +10,10 @@ export {
   UserNFTTicketsCollection,
   ConfirmationModal,
   MyEventsPage,
-  EnhancedEventCard
-} from './events';
+	EnhancedEventCard,
+} from "./events";
 
-// Legacy export for backward compatibility
-export { EnhancedEventForm as EventForm } from './events';
-export { EnhancedEventList as EventList } from './events';
-export { EnhancedEventDetailsModal as EventDetailsModal } from './events';
+// Legacy exports for backward compatibility
+export { EnhancedEventForm as EventForm } from "./events";
+export { EnhancedEventList as EventList } from "./events";
+export { EnhancedEventDetailsModal as EventDetailsModal } from "./events"; 

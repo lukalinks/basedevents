@@ -184,13 +184,6 @@ export function EnhancedEventForm({
 
   return (
     <div className="space-y-6 bg-transparent">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">{isEditing ? 'Edit Event' : 'Create New Event'}</h2>
-        <p className="text-sm text-[var(--app-foreground-muted)]">
-          {isEditing ? 'Update your event details' : 'Fill in the details to create your event'}
-        </p>
-      </div>
-      
       {errors.general && (
         <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2">

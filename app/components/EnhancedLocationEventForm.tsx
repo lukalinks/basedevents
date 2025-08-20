@@ -171,10 +171,7 @@ export function EnhancedLocationEventForm({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-[var(--app-foreground)]">
-          {isEditing ? 'Edit Event' : 'Create New Event'}
-        </h2>
+      <div className="flex items-center justify-end mb-6">
         <button
           onClick={onCancelAction}
           className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-colors"

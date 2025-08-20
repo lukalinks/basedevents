@@ -5,6 +5,7 @@ import { Button, Icon } from "../DemoComponents";
 import { Event } from "@/lib/events";
 import { OnchainEventBadges } from '../OnchainStatusIndicators';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
+import { EventSharing } from './EventSharing';
 
 interface EnhancedEventCardProps {
   event: Event;
@@ -393,50 +394,8 @@ export function EnhancedEventCard({
             </div>
 
             {/* Share Buttons */}
-            <div className="flex flex-wrap gap-1.5">
-              {/* Farcaster Share */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-                  openFarcasterCompose(shareText);
-                }}
-                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
-              >
-                <Icon name="share" size="sm" />
-                <span className="hidden sm:inline">Farcaster</span>
-                <span className="sm:hidden">Farcaster</span>
-              </Button>
-              
-              {/* Normal Share */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const eventUrl = `${window.location.origin}/events/${event.id}`;
-                  const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-                  
-                  if (navigator.share) {
-                    navigator.share({
-                      title: event.title,
-                      text: shareText,
-                      url: eventUrl
-                    });
-                  } else {
-                    // Fallback: copy to clipboard
-                    navigator.clipboard.writeText(`${shareText}\n\n${eventUrl}`);
-                    // You could add a toast notification here
-                  }
-                }}
-                className="text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] flex items-center gap-1 text-xs px-2 py-1.5"
-              >
-                <Icon name="share" size="sm" />
-                <span className="hidden sm:inline">Share</span>
-                <span className="sm:hidden">Share</span>
-              </Button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <EventSharing event={event} variant="compact" />
             </div>
           </div>
         )}

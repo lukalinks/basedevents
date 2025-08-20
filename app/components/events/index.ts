@@ -8,3 +8,4 @@ export { UserNFTTicketsCollection } from './UserNFTTicketsCollection';
 export { ConfirmationModal } from './ConfirmationModal';
 export { MyEventsPage } from './MyEventsPage';
 export { EnhancedEventCard } from './EnhancedEventCard';
+export { EventSharing } from './EventSharing';

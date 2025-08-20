@@ -249,10 +249,10 @@ export function MyEventsPage({
 
       {/* Compact Tab Navigation */}
       <div className="bg-white rounded-xl p-1 border border-gray-100 shadow-sm">
-        <div className="flex space-x-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
           <button
             onClick={() => setActiveTab('created')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+            className={`w-full flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
               activeTab === 'created'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -261,11 +261,14 @@ export function MyEventsPage({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
             </svg>
-            Created ({activeEvents.length})
+            <span className="truncate">Created</span>
+            <span className={`${activeTab === 'created' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1.5 rounded-full text-[10px] font-semibold`}>
+              {activeEvents.length}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('attending')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+            className={`w-full flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
               activeTab === 'attending'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -274,11 +277,14 @@ export function MyEventsPage({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Upcoming ({upcomingEvents.length})
+            <span className="truncate">Upcoming</span>
+            <span className={`${activeTab === 'attending' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1.5 rounded-full text-[10px] font-semibold`}>
+              {upcomingEvents.length}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('past')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+            className={`w-full flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
               activeTab === 'past'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -287,11 +293,14 @@ export function MyEventsPage({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Past ({pastEvents.length})
+            <span className="truncate">Past</span>
+            <span className={`${activeTab === 'past' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1.5 rounded-full text-[10px] font-semibold`}>
+              {pastEvents.length}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+            className={`w-full flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
               activeTab === 'tickets'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -300,7 +309,10 @@ export function MyEventsPage({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             </svg>
-            Tickets
+            <span className="truncate">Tickets</span>
+            <span className={`${activeTab === 'tickets' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'} inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1.5 rounded-full text-[10px] font-semibold`}>
+              {nftCount}
+            </span>
           </button>
         </div>
       </div>

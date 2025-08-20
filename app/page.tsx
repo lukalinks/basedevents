@@ -1023,7 +1023,7 @@ export default function App() {
   const openFarcasterCompose = useCallback(async (text: string, embedUrl?: string) => {
     try {
       // Try to use Farcaster SDK first
-      const { composeCast } = await import('../lib/farcaster-sdk');
+      const { composeCast } = await import('./lib/farcaster-sdk');
       await composeCast(text, embedUrl ? [embedUrl] : undefined);
     } catch (error) {
       console.warn('Farcaster SDK not available, using fallback:', error);

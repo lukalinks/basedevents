@@ -6,6 +6,7 @@ import { Event, EventComment, addEventComment, getEventComments, isUserRegistere
 import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary, OnchainEventBadges } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
+import { EventSharing } from './EventSharing';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // Enhanced Event Details Modal with comments
@@ -158,28 +159,7 @@ export function EnhancedEventDetailsModal({
             <OnchainEventBadges event={event} size="md" variant="default" />
           </div>
           <div className="flex items-center gap-2">
-          <button
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--app-accent)] hover:bg-[var(--app-accent-hover)] text-white transition-all duration-200"
-              onClick={() => {
-                const eventUrl = `${window.location.origin}/events/${event.id}`;
-                const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-                if (navigator.share) {
-                  navigator.share({ 
-                    title: event.title, 
-                    text: shareText,
-                    url: eventUrl
-                  });
-                } else {
-                  navigator.clipboard.writeText(`${shareText}\n\n${eventUrl}`).then(() => {
-                    // You could add a toast notification here
-                    alert('Event link copied to clipboard!');
-                  });
-                }
-              }}
-              title="Share Event"
-            >
-              <Icon name="share" size="sm" />
-            </button>
+            <EventSharing event={event} variant="compact" />
             <button
               className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--app-gray)] hover:bg-[var(--app-gray-dark)] text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-all duration-200 text-xl font-bold"
             onClick={onCloseAction}
@@ -439,34 +419,9 @@ export function EnhancedEventDetailsModal({
                    </Button>
                  )}
                  
-                 <Button variant="outline" size="sm" onClick={() => {
-                   const eventUrl = `${window.location.origin}/events/${event.id}`;
-                   const eventDate = new Date(`${event.date}T${event.time}`);
-                   const formattedDate = eventDate.toLocaleDateString('en-US', {
-                     weekday: 'short',
-                     month: 'short',
-                     day: 'numeric',
-                     hour: 'numeric',
-                     minute: '2-digit'
-                   });
-                   const shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
-                   const embedUrl = event.imageUrl || eventUrl;
-                   if (navigator.share) {
-                     navigator.share({ 
-                       title: event.title, 
-                       text: shareText,
-                       url: eventUrl
-                     });
-                   } else {
-                     navigator.clipboard.writeText(`${shareText}\n\n${eventUrl}`).then(() => {
-                       alert('Event link copied to clipboard!');
-                     });
-                   }
-                 }} className="w-full text-purple-600 hover:bg-purple-50 hover:text-purple-700 text-xs px-2 py-1.5">
-                   <Icon name="share" size="sm" className="mr-1" />
-                   <span className="hidden sm:inline">Share Event</span>
-                   <span className="sm:hidden">Share</span>
-                 </Button>
+                 <div className="w-full">
+                   <EventSharing event={event} variant="default" />
+                 </div>
                  
                  {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
                    <Button variant="outline" size="sm" onClick={() => onCancelEventAction(event.id)} className="w-full text-orange-600 hover:bg-orange-50 hover:text-orange-700 text-xs px-2 py-1.5">

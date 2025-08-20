@@ -6,6 +6,7 @@ import { Event, EventComment, addEventComment, getEventComments, isUserRegistere
 import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
+import { EventSharing } from './EventSharing';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { getUserDisplayInfo } from "@/lib/basenames";
 
@@ -50,7 +51,7 @@ export function EventDetailsPage({
   const openFarcasterCompose = useCallback(async (text: string, embedUrl?: string) => {
     try {
       // Try to use Farcaster SDK first
-      const { composeCast } = await import('../../../lib/farcaster-sdk');
+      const { composeCast } = await import('../../lib/farcaster-sdk');
       await composeCast(text, embedUrl ? [embedUrl] : undefined);
     } catch (error) {
       console.warn('Farcaster SDK not available, using fallback:', error);
@@ -222,51 +223,7 @@ export function EventDetailsPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              const eventUrl = `${window.location.origin}/events/${event.id}`;
-              const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
-              if (navigator.share) {
-                navigator.share({ 
-                  title: event.title, 
-                  text: shareText,
-                  url: eventUrl
-                });
-              } else {
-                navigator.clipboard.writeText(`${shareText}\n\n${eventUrl}`).then(() => {
-                  alert('Event link copied to clipboard!');
-                });
-              }
-            }}
-            className="flex items-center gap-2"
-          >
-            <Icon name="share" size="sm" />
-            Share Event
-          </Button>
-          <Button
-            variant="outline"
-            size="md"
-            onClick={() => {
-              const eventUrl = `${window.location.origin}/events/${event.id}`;
-              const eventDate = new Date(`${event.date}T${event.time}`);
-              const formattedDate = eventDate.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-              });
-              const shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formattedDate}\n📍 ${event.location}`;
-              const embedUrl = event.imageUrl || eventUrl;
-              openFarcasterCompose(shareText, embedUrl);
-            }}
-            className="flex items-center gap-2"
-          >
-            <Icon name="share" size="sm" />
-            Share on Farcaster
-          </Button>
+          <EventSharing event={event} variant="default" />
         </div>
       </div>
 

@@ -21,7 +21,7 @@ export class FarcasterSDKWrapper {
     try {
       await this.sdkInstance.actions.composeCast({
         text,
-        embeds: embeds || []
+        embeds: embeds && embeds.length > 0 ? embeds as [string] : undefined
       });
     } catch (error) {
       console.warn('Farcaster SDK composeCast failed, using fallback:', error);

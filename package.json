@@ -14,7 +14,9 @@
     "test:smart-contracts": "npx playwright test test/smart-contract-integration.test.js",
     "test:token-gating": "npx playwright test test/token-gating-error-handling.test.js",
     "test:token-gating-ui": "npx playwright test test/token-gating-ui-error-handling.test.js",
-    "test:all": "npm run test:nft && npm run test:onchain && npm run test:smart-contracts && npm run test:token-gating && npm run test:token-gating-ui"
+    "test:notifications": "node test-notifications.js",
+    "test:event-updates": "node test-event-updates.js",
+    "test:all": "npm run test:nft && npm run test:onchain && npm run test:smart-contracts && npm run test:token-gating && npm run test:token-gating-ui && npm run test:notifications && npm run test:event-updates"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",

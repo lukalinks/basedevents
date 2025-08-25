@@ -451,3 +451,117 @@ export async function notifyEventCreatorOfCancellation(
     return false;
   }
 }
+
+/**
+ * Send custom event update notification to all attendees
+ * This allows event hosts to send updates about their events
+ */
+export async function notifyEventUpdate(
+  eventTitle: string,
+  eventDate: string,
+  attendeeAddresses: string[],
+  updateMessage: string,
+  updateType: 'general' | 'schedule' | 'location' | 'important' = 'general'
+) {
+  const results = [];
+  
+  for (const attendeeAddress of attendeeAddresses) {
+    try {
+      const attendeeFid = await getAddressFid(attendeeAddress);
+      
+      if (!attendeeFid) {
+        console.log(`Attendee ${attendeeAddress} not found on Farcaster, skipping update notification`);
+        results.push({ address: attendeeAddress, success: false, reason: 'no_fid' });
+        continue;
+      }
+
+      // Create appropriate title based on update type
+      let title = `Event Update: ${eventTitle}`;
+      if (updateType === 'schedule') title = `Schedule Change: ${eventTitle}`;
+      if (updateType === 'location') title = `Location Update: ${eventTitle}`;
+      if (updateType === 'important') title = `Important Update: ${eventTitle}`;
+
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fid: attendeeFid,
+          notification: {
+            title,
+            body: updateMessage,
+            notificationDetails: {
+              eventTitle,
+              eventDate,
+              updateType,
+              timestamp: new Date().toISOString()
+            }
+          }
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Update notification sent to attendee FID: ${attendeeFid}`);
+        results.push({ address: attendeeAddress, success: true, fid: attendeeFid });
+      } else {
+        console.error('Failed to send update notification:', await response.text());
+        results.push({ address: attendeeAddress, success: false, reason: 'api_error' });
+      }
+    } catch (error) {
+      console.error('Error sending update notification to attendee:', attendeeAddress, error);
+      results.push({ address: attendeeAddress, success: false, reason: 'exception' });
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Send notification to specific attendees only
+ * Useful for targeted updates or private messages
+ */
+export async function notifySpecificAttendees(
+  attendeeAddresses: string[],
+  title: string,
+  message: string,
+  notificationDetails?: any
+) {
+  const results = [];
+  
+  for (const attendeeAddress of attendeeAddresses) {
+    try {
+      const attendeeFid = await getAddressFid(attendeeAddress);
+      
+      if (!attendeeFid) {
+        console.log(`Attendee ${attendeeAddress} not found on Farcaster, skipping notification`);
+        results.push({ address: attendeeAddress, success: false, reason: 'no_fid' });
+        continue;
+      }
+
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fid: attendeeFid,
+          notification: {
+            title,
+            body: message,
+            notificationDetails
+          }
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Custom notification sent to attendee FID: ${attendeeFid}`);
+        results.push({ address: attendeeAddress, success: true, fid: attendeeFid });
+      } else {
+        console.error('Failed to send custom notification:', await response.text());
+        results.push({ address: attendeeAddress, success: false, reason: 'api_error' });
+      }
+    } catch (error) {
+      console.error('Error sending custom notification to attendee:', attendeeAddress, error);
+      results.push({ address: attendeeAddress, success: false, reason: 'exception' });
+    }
+  }
+  
+  return results;
+}

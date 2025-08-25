@@ -851,6 +851,12 @@ export function EventDetailsModal({ event, onClose, userAddress, onEdit, onDelet
 
 // Update EventList to pass userAddress and onEventClick
 export function EventList({ events, onRSVP, userAddress, onEventClick }: { events: Event[]; onRSVP: (eventId: string) => void; userAddress?: string; onEventClick?: (event: Event) => void }) {
+  // Function to truncate description
+  const truncateDescription = (description: string, maxLength: number = 80) => {
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength).trim() + '...';
+  };
+
   return (
     <Card title="Upcoming Events">
       <ul className="space-y-4">
@@ -862,7 +868,22 @@ export function EventList({ events, onRSVP, userAddress, onEventClick }: { event
                 <div className="font-semibold text-[var(--app-foreground)]">{event.title}</div>
                 <div className="text-xs text-[var(--app-foreground-muted)]">{event.date} @ {event.location}</div>
                 <div className="text-xs text-[var(--app-foreground-muted)]">By {event.creator}</div>
-                {event.description && <div className="mt-1 text-sm">{event.description}</div>}
+                {event.description && (
+                  <div className="mt-1 text-sm">
+                    {truncateDescription(event.description, 80)}
+                    {event.description.length > 80 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onEventClick) onEventClick(event);
+                        }}
+                        className="text-[var(--app-accent)] text-xs font-medium hover:underline transition-colors ml-1"
+                      >
+                        Read More
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div className="mt-1 text-xs text-[var(--app-foreground-muted)]">Attendees: {event.attendees.length}</div>
               </div>
               <Button

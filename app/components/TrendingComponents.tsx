@@ -554,9 +554,15 @@ function TrendingEventCard({
     }
   };
 
+  // Function to truncate description
+  const truncateDescription = (description: string, maxLength: number = 120) => {
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength).trim() + '...';
+  };
+
   return (
     <div 
-      className="bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer group relative"
+      className="bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group relative"
       onClick={onClick}
     >
       {/* Trending Rank Badge */}
@@ -576,9 +582,22 @@ function TrendingEventCard({
             <h3 className="text-xl font-bold text-[var(--app-foreground)] mb-2 group-hover:text-[var(--app-accent)] transition-colors">
               {event.title}
             </h3>
-            <p className="text-[var(--app-foreground-muted)] mb-3 line-clamp-2">
-              {event.description}
-            </p>
+            <div className="space-y-2 mb-3">
+              <p className="text-[var(--app-foreground-muted)] line-clamp-2">
+                {truncateDescription(event.description, 120)}
+              </p>
+              {event.description.length > 120 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClick();
+                  }}
+                  className="text-[var(--app-accent)] text-xs font-medium hover:underline transition-colors"
+                >
+                  Read More
+                </button>
+              )}
+            </div>
             
             {/* Event Details */}
             <div className="space-y-2 text-sm">

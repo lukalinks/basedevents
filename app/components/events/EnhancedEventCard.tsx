@@ -87,6 +87,12 @@ export function EnhancedEventCard({
     openUrl(farcasterUrl);
   };
 
+  // Function to truncate description
+  const truncateDescription = (description: string, maxLength: number = 120) => {
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength).trim() + '...';
+  };
+
   const status = getEventStatus(event);
   const isAttending = event.attendees.includes(userAddress || "");
   const isFull = isEventFull(event);
@@ -150,9 +156,22 @@ export function EnhancedEventCard({
             <OnchainEventBadges event={event} size="sm" variant="compact" />
           </div>
           
-          <p className="text-[var(--app-foreground-muted)] text-sm line-clamp-2">
-            {event.description}
-          </p>
+          <div className="space-y-2">
+            <p className="text-[var(--app-foreground-muted)] text-sm line-clamp-2">
+              {truncateDescription(event.description, 100)}
+            </p>
+            {event.description.length > 100 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onEventClick) onEventClick(event);
+                }}
+                className="text-[var(--app-accent)] text-xs font-medium hover:underline transition-colors"
+              >
+                Read More
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-3 text-sm text-[var(--app-foreground-muted)]">
             <div className="flex items-center gap-1">
@@ -261,9 +280,23 @@ export function EnhancedEventCard({
             <h3 className="font-bold text-[var(--app-foreground)] text-xl mb-2">
               {event.title}
             </h3>
-            <p className="text-[var(--app-foreground-muted)] text-base leading-relaxed">
-              {event.description}
-            </p>
+            <div className="space-y-2">
+              <p className="text-[var(--app-foreground-muted)] text-base leading-relaxed">
+                {truncateDescription(event.description, 150)}
+              </p>
+              {event.description.length > 150 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onEventClick) onEventClick(event);
+                  }}
+                  className="text-[var(--app-accent)] text-sm font-medium hover:underline transition-colors flex items-center gap-1"
+                >
+                  Read More
+                  <Icon name="arrow-right" size="sm" />
+                </button>
+              )}
+            </div>
           </div>
           <OnchainEventBadges event={event} size="md" variant="default" />
         </div>

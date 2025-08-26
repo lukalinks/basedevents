@@ -29,6 +29,7 @@ import {
   EventRegistrationForm,
   UserNFTTicketsCollection,
   MyEventsPage,
+  EventManagementDashboard,
 } from "./components/EventComponents";
 import {
   createEvent,
@@ -51,6 +52,8 @@ import { Host, getHostByAddress } from "../lib/hosts";
 import { getUserDisplayInfo } from "../lib/basenames";
 import { getUserNFTTickets } from "../lib/events";
 import { getComprehensiveUserProfile } from "../lib/farcaster";
+import { NotificationBanner, useNotifications } from "./components/NotificationBanner";
+import { NotificationDemo } from "./components/NotificationDemo";
 
 // NFT Count Display Component
 function NFTCountDisplay({ userAddress }: { userAddress: string }) {
@@ -637,6 +640,7 @@ export default function App() {
   const { setFrameReady, isFrameReady, context } = useMiniKit();
   const [frameAdded, setFrameAdded] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
+  const { addNotification } = useNotifications();
   
   // Handle URL parameters for tab navigation
   useEffect(() => {
@@ -645,7 +649,7 @@ export default function App() {
       const tabParam = urlParams.get('tab');
       const editParam = urlParams.get('edit');
       
-      if (tabParam && ['home', 'my-events', 'create', 'hosts', 'profile'].includes(tabParam)) {
+      if (tabParam && ['home', 'my-events', 'event-dashboard', 'create', 'hosts', 'profile'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
       
@@ -1281,6 +1285,7 @@ export default function App() {
   const navItems = [
     { key: "home", label: "Events", icon: <Icon name="star" size="md" /> },
     { key: "my-events", label: "My Events", icon: <Icon name="heart" size="md" /> },
+    { key: "event-dashboard", label: "Dashboard", icon: <Icon name="chart" size="md" /> },
     { key: "create", label: "Create", icon: <Icon name="plus" size="md" /> },
     { key: "hosts", label: "Hosts", icon: <Icon name="users" size="md" /> },
     { key: "profile", label: "Profile", icon: <Icon name="arrow-right" size="md" /> },
@@ -1324,6 +1329,14 @@ export default function App() {
 
       {/* Enhanced Main content */}
       <main className="flex-1 px-6 pb-24 pt-6 max-w-4xl mx-auto w-full overflow-x-hidden">
+        {/* Notification Banner */}
+        <NotificationBanner
+          message="Welcome to Based Events! Create and manage your events with real-time notifications."
+          type="info"
+          autoDismiss={true}
+          autoDismissDelay={8000}
+        />
+        
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1471,6 +1484,9 @@ export default function App() {
                 selectedTags={selectedTags}
               />
             )}
+            
+            {/* Notification System Demo */}
+            <NotificationDemo />
             </div>
             {selectedEvent && (
               <EnhancedEventDetailsModal
@@ -1516,6 +1532,16 @@ export default function App() {
               />
             )}
           </>
+        )}
+        {!isLoading && !error && activeTab === "event-dashboard" && address && (
+          <EventManagementDashboard
+            events={events.filter(event => event.creator === address)}
+            userAddress={address}
+            onEditEvent={handleEditEvent}
+            onDeleteEvent={handleDeleteEvent}
+            onCancelEvent={handleCancelEvent}
+            onDownloadCSV={handleDownloadCSV}
+          />
         )}
         {!isLoading && !error && activeTab === "hosts" && <HostsPage events={events} />}
         {!isLoading && !error && activeTab === "profile" && (

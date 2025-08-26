@@ -7,6 +7,7 @@ import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary, OnchainEventBadges } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
 import { EventSharing } from './EventSharing';
+import { EventUpdateNotification } from '../EventUpdateNotification';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // Enhanced Event Details Modal with comments
@@ -444,6 +445,22 @@ export function EnhancedEventDetailsModal({
                    </div>
                  )}
                </div>
+             </div>
+           )}
+
+           {/* Event Update Notifications - Only for Event Hosts */}
+           {isCreator && event.attendees.length > 0 && (
+             <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
+               <EventUpdateNotification
+                 eventId={event.id}
+                 eventTitle={event.title}
+                 eventDate={event.date}
+                 attendeeAddresses={event.attendees.map(attendee => attendee)}
+                 onUpdateSent={(results) => {
+                   console.log('Event update sent successfully:', results);
+                   // Optionally refresh the event data or show a success message
+                 }}
+               />
              </div>
            )}
           

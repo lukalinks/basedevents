@@ -10,6 +10,7 @@ import { getUserDisplayInfo } from "@/lib/basenames";
 import { getHostByAddress, Host } from "@/lib/hosts";
 import { ConnectWallet } from "@coinbase/onchainkit/wallet";
 import { getComprehensiveUserProfile } from "@/lib/farcaster";
+import { EventUpdateNotification } from '../EventUpdateNotification';
 
 interface MyEventsPageProps {
   address?: string | null;
@@ -347,6 +348,51 @@ export function MyEventsPage({
                   onDownloadCSVAction={onDownloadCSV}
                   showSearch={false}
                 />
+                
+                {/* Quick Update Notifications for Active Events */}
+                {activeEvents.length > 0 && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-sm font-semibold text-blue-800">Quick Event Updates</h4>
+                    </div>
+                    <p className="text-xs text-blue-700 mb-3">
+                      Send notifications to your event attendees about schedule changes, location updates, or important announcements.
+                    </p>
+                    <div className="space-y-3">
+                      {activeEvents.slice(0, 3).map((event) => (
+                        <div key={event.id} className="bg-white rounded-lg p-3 border border-blue-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="text-sm font-medium text-gray-900 truncate">{event.title}</h5>
+                            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                              {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <EventUpdateNotification
+                            eventId={event.id}
+                            eventTitle={event.title}
+                            eventDate={event.date}
+                            attendeeAddresses={event.attendees.map(attendee => attendee)}
+                            onUpdateSent={(results) => {
+                              console.log(`Update sent for ${event.title}:`, results);
+                            }}
+                          />
+                        </div>
+                      ))}
+                      {activeEvents.length > 3 && (
+                        <div className="text-center">
+                          <p className="text-xs text-blue-600">
+                            +{activeEvents.length - 3} more events with update capabilities
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

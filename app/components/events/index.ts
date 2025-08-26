@@ -11,3 +11,4 @@ export { EnhancedEventCard } from './EnhancedEventCard';
 export { EventSharing } from './EventSharing';
 export { default as ComposeCastButton } from './ComposeCastButton';
 export { default as ComposeCastExample } from './ComposeCastExample';
+export { default as EventManagementDashboard } from './EventManagementDashboard';

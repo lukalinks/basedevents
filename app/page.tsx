@@ -30,7 +30,7 @@ import {
   UserNFTTicketsCollection,
   MyEventsPage,
 } from "./components/EventComponents";
-import EventManagementDashboard from "./components/events/EventManagementDashboard";
+
 import {
   createEvent,
   getAllEvents,
@@ -649,7 +649,7 @@ export default function App() {
       const tabParam = urlParams.get('tab');
       const editParam = urlParams.get('edit');
       
-      if (tabParam && ['home', 'my-events', 'event-dashboard', 'create', 'hosts', 'profile'].includes(tabParam)) {
+      if (tabParam && ['home', 'my-events', 'create', 'hosts', 'profile'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
       
@@ -1285,7 +1285,6 @@ export default function App() {
   const navItems = [
     { key: "home", label: "Events", icon: <Icon name="star" size="md" /> },
     { key: "my-events", label: "My Events", icon: <Icon name="heart" size="md" /> },
-    { key: "event-dashboard", label: "Dashboard", icon: <Icon name="chart" size="md" /> },
     { key: "create", label: "Create", icon: <Icon name="plus" size="md" /> },
     { key: "hosts", label: "Hosts", icon: <Icon name="users" size="md" /> },
     { key: "profile", label: "Profile", icon: <Icon name="arrow-right" size="md" /> },
@@ -1533,16 +1532,7 @@ export default function App() {
             )}
           </>
         )}
-        {!isLoading && !error && activeTab === "event-dashboard" && address && (
-          <EventManagementDashboard
-            events={events.filter(event => event.creator === address)}
-            userAddress={address}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onCancelEvent={handleCancelEvent}
-            onDownloadCSV={handleDownloadCSV}
-          />
-        )}
+
         {!isLoading && !error && activeTab === "hosts" && <HostsPage events={events} />}
         {!isLoading && !error && activeTab === "profile" && (
           <ProfilePage 

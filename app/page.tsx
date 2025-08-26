@@ -54,6 +54,8 @@ import { getUserNFTTickets } from "../lib/events";
 import { getComprehensiveUserProfile } from "../lib/farcaster";
 import NotificationBanner, { useNotifications } from "./components/NotificationBanner";
 import NotificationDemo from "./components/NotificationDemo";
+import PushSetup from "./components/PushSetup";
+import InAppBell from "./components/InAppBell";
 
 // NFT Count Display Component
 function NFTCountDisplay({ userAddress }: { userAddress: string }) {
@@ -1310,10 +1312,14 @@ export default function App() {
             <span className="text-xs text-[var(--app-foreground-muted)]">Find Your Next Event</span>
           </div>
         </div>
-        <Wallet className="z-10">
+        <Wallet className="z-10 flex items-center gap-3">
           <ConnectWallet>
             <Name className="text-inherit" />
           </ConnectWallet>
+          <div className="hidden sm:block">
+            {/* In-app notifications bell */}
+            <InAppBell />
+          </div>
           <WalletDropdown>
             <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
               <Avatar />
@@ -1328,6 +1334,8 @@ export default function App() {
 
       {/* Enhanced Main content */}
       <main className="flex-1 px-6 pb-24 pt-6 max-w-4xl mx-auto w-full overflow-x-hidden">
+        {/* Register service worker and push subscription */}
+        <PushSetup />
         {/* Notification Banner */}
         <NotificationBanner
           message="Welcome to Based Events! Create and manage your events with real-time notifications."

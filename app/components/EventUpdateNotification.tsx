@@ -26,6 +26,21 @@ export default function EventUpdateNotification({
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sendEmail, setSendEmail] = useState(false);
+  const [emailCsv, setEmailCsv] = useState('');
+
+  const parseEmailCsv = (text: string) => {
+    const map: Record<string, string> = {};
+    text
+      .split(/\n|\r/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .forEach(line => {
+        const [addr, email] = line.split(',').map(s => s?.trim());
+        if (addr && email) map[addr.toLowerCase()] = email;
+      });
+    return map;
+  };
 
   const handleSendUpdate = async () => {
     if (!updateMessage.trim()) {
@@ -38,22 +53,33 @@ export default function EventUpdateNotification({
       return;
     }
 
+    if (sendEmail && !emailCsv.trim()) {
+      setError('Please provide address,email lines to send emails, or disable email');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
+      const body: any = {
+        eventId,
+        eventTitle,
+        eventDate,
+        attendeeAddresses,
+        updateMessage: updateMessage.trim(),
+        updateType,
+        targetAttendees: targetAttendees === 'specific' ? selectedAttendees : 'all'
+      };
+
+      if (sendEmail) {
+        body.emailByAddress = parseEmailCsv(emailCsv);
+      }
+
       const response = await fetch('/api/events/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId,
-          eventTitle,
-          eventDate,
-          attendeeAddresses,
-          updateMessage: updateMessage.trim(),
-          updateType,
-          targetAttendees: targetAttendees === 'specific' ? selectedAttendees : 'all'
-        })
+        body: JSON.stringify(body)
       });
 
       const data = await response.json();
@@ -208,6 +234,28 @@ export default function EventUpdateNotification({
         </div>
       </div>
 
+      {/* Email Blast */}
+      <div className="mb-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
+          <span className="text-sm font-medium text-gray-700">Also send as email</span>
+        </label>
+        {sendEmail && (
+          <div className="mt-2">
+            <p className="text-xs text-gray-600 mb-2">Paste address,email pairs (one per line) matching your attendees. Example:<br />
+              <span className="font-mono">0xabc...,user@example.com</span>
+            </p>
+            <textarea
+              value={emailCsv}
+              onChange={(e) => setEmailCsv(e.target.value)}
+              placeholder={'0xabc...,user@example.com\n0xdef...,other@example.com'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              rows={4}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Error Display */}
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -229,19 +277,23 @@ export default function EventUpdateNotification({
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h4 className="font-medium text-green-800 mb-2">Update Sent Successfully!</h4>
           <div className="text-sm text-green-700">
-            <p>Total recipients: {results.summary.total}</p>
-            <p>Successful: {results.summary.successful}</p>
-            <p>Failed: {results.summary.failed}</p>
-            <p>Success rate: {results.summary.successRate}</p>
+            {results.farcaster?.summary && (
+              <>
+                <p>Total recipients: {results.farcaster.summary.total}</p>
+                <p>Successful: {results.farcaster.summary.successful}</p>
+                <p>Failed: {results.farcaster.summary.failed}</p>
+                <p>Success rate: {results.farcaster.summary.successRate}</p>
+              </>
+            )}
           </div>
           
-          {results.results.some((r: any) => !r.success) && (
+          {results.farcaster?.results?.some((r: any) => !r.success) && (
             <details className="mt-3">
               <summary className="cursor-pointer text-sm font-medium text-green-700">
                 View Failed Deliveries
               </summary>
               <div className="mt-2 text-xs">
-                {results.results
+                {results.farcaster.results
                   .filter((r: any) => !r.success)
                   .map((r: any, i: number) => (
                     <div key={i} className="text-red-600">

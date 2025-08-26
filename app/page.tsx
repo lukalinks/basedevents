@@ -29,8 +29,8 @@ import {
   EventRegistrationForm,
   UserNFTTicketsCollection,
   MyEventsPage,
-  EventManagementDashboard,
 } from "./components/EventComponents";
+import EventManagementDashboard from "./components/events/EventManagementDashboard";
 import {
   createEvent,
   getAllEvents,
@@ -52,8 +52,8 @@ import { Host, getHostByAddress } from "../lib/hosts";
 import { getUserDisplayInfo } from "../lib/basenames";
 import { getUserNFTTickets } from "../lib/events";
 import { getComprehensiveUserProfile } from "../lib/farcaster";
-import { NotificationBanner, useNotifications } from "./components/NotificationBanner";
-import { NotificationDemo } from "./components/NotificationDemo";
+import NotificationBanner, { useNotifications } from "./components/NotificationBanner";
+import NotificationDemo from "./components/NotificationDemo";
 
 // NFT Count Display Component
 function NFTCountDisplay({ userAddress }: { userAddress: string }) {

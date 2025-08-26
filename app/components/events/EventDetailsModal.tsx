@@ -7,7 +7,7 @@ import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary, OnchainEventBadges } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
 import { EventSharing } from './EventSharing';
-import { EventUpdateNotification } from '../EventUpdateNotification';
+import EventUpdateNotification from '../EventUpdateNotification';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // Enhanced Event Details Modal with comments

@@ -10,7 +10,7 @@ import { getUserDisplayInfo } from "@/lib/basenames";
 import { getHostByAddress, Host } from "@/lib/hosts";
 import { ConnectWallet } from "@coinbase/onchainkit/wallet";
 import { getComprehensiveUserProfile } from "@/lib/farcaster";
-import { EventUpdateNotification } from '../EventUpdateNotification';
+import EventUpdateNotification from '../EventUpdateNotification';
 
 interface MyEventsPageProps {
   address?: string | null;

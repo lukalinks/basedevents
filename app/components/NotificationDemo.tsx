@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button, Icon } from './DemoComponents';
-import { EventUpdateNotification } from './EventUpdateNotification';
+import EventUpdateNotification from './EventUpdateNotification';
 
 export default function NotificationDemo() {
   const [showDemo, setShowDemo] = useState(false);

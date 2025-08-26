@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Icon } from '../DemoComponents';
 import { Event } from '@/lib/events';
-import { EventUpdateNotification } from '../EventUpdateNotification';
+import EventUpdateNotification from '../EventUpdateNotification';
 
 interface EventManagementDashboardProps {
   events: Event[];

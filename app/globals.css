@@ -24,6 +24,19 @@ body {
   font-size: 80%;
 }
 
+/* Responsive typography */
+@media (min-width: 640px) {
+  body {
+    font-size: 90%;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    font-size: 100%;
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;

@@ -42,19 +42,28 @@ export function USDCBalance({
   });
 
   useEffect(() => {
+    console.log('USDCBalance useEffect:', { balanceData, error, address, isLoading });
+    
     if (balanceData) {
       const formattedBalance = formatUnits(balanceData, 6); // USDC has 6 decimals
-      setBalance(parseFloat(formattedBalance).toFixed(2));
+      const balance = parseFloat(formattedBalance).toFixed(2);
+      console.log('USDC Balance formatted:', balance);
+      setBalance(balance);
       setLoading(false);
     } else if (error) {
       console.error('Error fetching USDC balance:', error);
       setBalance("0.00");
       setLoading(false);
     } else if (!address) {
+      console.log('No address provided');
+      setBalance("0.00");
+      setLoading(false);
+    } else if (!isLoading && !balanceData) {
+      console.log('No balance data and not loading');
       setBalance("0.00");
       setLoading(false);
     }
-  }, [balanceData, error, address]);
+  }, [balanceData, error, address, isLoading]);
 
   if (!address) {
     return null;
@@ -79,6 +88,24 @@ export function USDCBalance({
         {showLabel && (
           <div className={`${sizeClasses[size]} text-gray-400`}>
             Loading...
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className={`flex items-center gap-1 ${className}`}>
+        <div className={`${iconSizes[size]} bg-red-100 rounded-full flex items-center justify-center`}>
+          <svg className={`${iconSizes[size]} text-red-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        {showLabel && (
+          <div className={`${sizeClasses[size]} text-red-600`}>
+            Error
           </div>
         )}
       </div>

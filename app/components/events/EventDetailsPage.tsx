@@ -75,14 +75,14 @@ export function EventDetailsPage({
     
     switch (shareType) {
       case 'created':
-        shareText = `🎉 I just created an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        shareText = `🎉 I just created an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time, event.endTime)}\n📍 ${event.location}`;
         break;
       case 'registered':
-        shareText = `✅ I just registered for an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        shareText = `✅ I just registered for an event!\n\n📅 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time, event.endTime)}\n📍 ${event.location}`;
         break;
       case 'general':
       default:
-        shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time)}\n📍 ${event.location}`;
+        shareText = `📅 Check out this event!\n\n🎯 ${event.title}\n📝 ${event.description.substring(0, 100)}${event.description.length > 100 ? '...' : ''}\n🕒 ${formatDate(event.date, event.time, event.endTime)}\n📍 ${event.location}`;
         break;
     }
     
@@ -173,9 +173,9 @@ export function EventDetailsPage({
   const canRSVP = userAddress && !isCreator && !isRegistered;
   const isFull = event.maxAttendees && event.attendees.length >= event.maxAttendees;
   
-  const formatDate = (date: string, time: string) => {
+  const formatDate = (date: string, time: string, endTime?: string) => {
     const eventDate = new Date(`${date}T${time}`);
-    return eventDate.toLocaleDateString('en-US', {
+    const baseFormat = eventDate.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -183,12 +183,23 @@ export function EventDetailsPage({
       hour: 'numeric',
       minute: '2-digit'
     });
+    
+    if (endTime) {
+      const endDate = new Date(`${date}T${endTime}`);
+      const endFormat = endDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+      return `${baseFormat} - ${endFormat}`;
+    }
+    
+    return baseFormat;
   };
 
   // Utility functions for calendar integration
   function getGoogleCalendarUrl(event: Event) {
     const start = encodeURIComponent(`${event.date}T${event.time}`);
-    const end = encodeURIComponent(`${event.date}T${event.time}`);
+    const end = encodeURIComponent(`${event.date}T${event.endTime || event.time}`);
     const details = encodeURIComponent(event.description || "");
     const location = encodeURIComponent(event.location || "");
     const title = encodeURIComponent(event.title);
@@ -197,7 +208,7 @@ export function EventDetailsPage({
 
   function getOutlookCalendarUrl(event: Event) {
     const start = encodeURIComponent(`${event.date}T${event.time}`);
-    const end = encodeURIComponent(`${event.date}T${event.time}`);
+    const end = encodeURIComponent(`${event.date}T${event.endTime || event.time}`);
     const details = encodeURIComponent(event.description || "");
     const location = encodeURIComponent(event.location || "");
     const title = encodeURIComponent(event.title);
@@ -412,7 +423,7 @@ export function EventDetailsPage({
                 </div>
                 <div>
                   <p className="text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
-                  <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time)}</p>
+                  <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time, event.endTime)}</p>
                 </div>
               </div>
               

@@ -53,15 +53,26 @@ export function EnhancedEventCard({
     return (event as any).capacity && event.attendees.length >= (event as any).capacity;
   };
 
-  const formatDate = (date: string, time: string) => {
+  const formatDate = (date: string, time: string, endTime?: string) => {
     const eventDate = new Date(`${date}T${time}`);
-    return eventDate.toLocaleDateString('en-US', {
+    const baseFormat = eventDate.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
     });
+    
+    if (endTime) {
+      const endDate = new Date(`${date}T${endTime}`);
+      const endFormat = endDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+      return `${baseFormat} - ${endFormat}`;
+    }
+    
+    return baseFormat;
   };
 
   const formatTimeUntil = (date: string, time: string) => {
@@ -176,7 +187,7 @@ export function EnhancedEventCard({
           <div className="flex items-center gap-3 text-sm text-[var(--app-foreground-muted)]">
             <div className="flex items-center gap-1">
               <Icon name="calendar" size="sm" />
-              <span>{formatDate(event.date, event.time)}</span>
+              <span>{formatDate(event.date, event.time, event.endTime)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Icon name="location" size="sm" />
@@ -309,7 +320,7 @@ export function EnhancedEventCard({
                 <Icon name="calendar" size="sm" className="text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--app-foreground)]">{formatDate(event.date, event.time)}</p>
+                <p className="text-sm font-medium text-[var(--app-foreground)]">{formatDate(event.date, event.time, event.endTime)}</p>
                 <p className="text-xs text-[var(--app-foreground-muted)]">{formatTimeUntil(event.date, event.time)}</p>
               </div>
             </div>

@@ -17,15 +17,26 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
   const [shareSuccess, setShareSuccess] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const formatDate = (date: string, time: string) => {
+  const formatDate = (date: string, time: string, endTime?: string) => {
     const eventDate = new Date(`${date}T${time}`);
-    return eventDate.toLocaleDateString('en-US', {
+    const baseFormat = eventDate.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
     });
+    
+    if (endTime) {
+      const endDate = new Date(`${date}T${endTime}`);
+      const endFormat = endDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+      return `${baseFormat} - ${endFormat}`;
+    }
+    
+    return baseFormat;
   };
 
   const getEventUrl = () => {
@@ -38,7 +49,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
     const eventUrl = getEventUrl();
     const eventData = {
       title: event.title,
-      date: formatDate(event.date, event.time),
+      date: formatDate(event.date, event.time, event.endTime),
       location: event.location,
       description: event.description,
       imageUrl: event.imageUrl,
@@ -71,7 +82,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
       
       // Create engaging share text with event details
       let shareText = `🎉 ${event.title}\n`;
-      shareText += `📅 ${formatDate(event.date, event.time)}\n`;
+      shareText += `📅 ${formatDate(event.date, event.time, event.endTime)}\n`;
       shareText += `📍 ${event.location}\n`;
       
       // Add price info if it's a paid event
@@ -260,7 +271,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
               {event.title}
             </h4>
             <p className="text-[var(--app-foreground-muted)] text-xs">
-              {formatDate(event.date, event.time)} • {event.location}
+              {formatDate(event.date, event.time, event.endTime)} • {event.location}
             </p>
             <p className="text-[var(--app-foreground-muted)] text-xs line-clamp-2">
               {event.description}

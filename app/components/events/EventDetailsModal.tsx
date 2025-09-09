@@ -152,8 +152,8 @@ export function EnhancedEventDetailsModal({
   console.log('Event imageUrl:', event.imageUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-[var(--app-background)] rounded-2xl shadow-2xl w-full max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl max-h-[95vh] flex flex-col border-2 border-[var(--app-card-border)] animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4 animate-fade-in">
+      <div className="bg-[var(--app-background)] rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[98vh] sm:max-h-[95vh] flex flex-col border border-[var(--app-card-border)] animate-scale-in">
         {event.imageUrl && (
           <div className="w-full max-h-48 overflow-hidden flex justify-center items-center bg-[var(--app-gray)] flex-shrink-0">
             <img 
@@ -165,15 +165,17 @@ export function EnhancedEventDetailsModal({
             />
           </div>
         )}
-        <div className="bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-card-bg)]/95 border-b border-[var(--app-card-border)] p-6 flex justify-between items-center flex-shrink-0">
-          <div className="flex-1 min-w-0 flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-[var(--app-foreground)] truncate">{event.title}</h2>
-            <OnchainEventBadges event={event} size="md" variant="default" />
+        <div className="bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-card-bg)]/95 border-b border-[var(--app-card-border)] p-4 sm:p-6 flex justify-between items-start sm:items-center flex-shrink-0">
+          <div className="flex-1 min-w-0 pr-2">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--app-foreground)] leading-tight">{event.title}</h2>
+            <div className="mt-2">
+              <OnchainEventBadges event={event} size="sm" variant="default" />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <EventSharing event={event} variant="compact" />
             <button
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--app-gray)] hover:bg-[var(--app-gray-dark)] text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-all duration-200 text-xl font-bold"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-[var(--app-gray)] hover:bg-[var(--app-gray-dark)] text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-all duration-200 text-lg sm:text-xl font-bold"
             onClick={onCloseAction}
               title="Close"
           >
@@ -183,14 +185,14 @@ export function EnhancedEventDetailsModal({
         </div>
         
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-6 lg:p-8 xl:p-10 space-y-6 lg:space-y-8">
+          <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
             {/* Registration Section - TOP PRIORITY */}
             {!isCreator && (
-              <div className="bg-gradient-to-r from-[var(--app-accent-light)]/10 to-transparent rounded-xl p-6 border border-[var(--app-accent-light)]/30">
+              <div className="bg-gradient-to-r from-[var(--app-accent-light)]/10 to-transparent rounded-xl p-4 sm:p-6 border border-[var(--app-accent-light)]/30">
                 <div className="text-center">
-                  <div className="mb-4">
-                    <div className="w-16 h-16 bg-[var(--app-accent)] rounded-full flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="mb-3 sm:mb-4">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[var(--app-accent)] rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                       </svg>
                     </div>
@@ -283,48 +285,48 @@ export function EnhancedEventDetailsModal({
             )}
 
             {/* Key Event Info */}
-            <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-2xl p-6 lg:p-8 border border-[var(--app-accent-light)]/30">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center">
+            <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-[var(--app-accent-light)]/30">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center flex-shrink-0">
                     <Icon name="calendar" size="sm" className="text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
-                    <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time, event.endTime)}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
+                    <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base leading-tight">{formatDate(event.date, event.time, event.endTime)}</p>
                   </div>
             </div>
             
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <Icon name="location" size="sm" className="text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[var(--app-foreground-muted)]">Location</p>
-                    <p className="font-semibold text-[var(--app-foreground)]">{event.location}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Location</p>
+                    <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base leading-tight break-words">{event.location}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <Icon name="users" size="sm" className="text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[var(--app-foreground-muted)]">Attendees</p>
-                    <p className="font-semibold text-[var(--app-foreground)]">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Attendees</p>
+                    <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base">
                       {event.attendees.length}{event.maxAttendees ? `/${event.maxAttendees}` : ''} registered
                     </p>
                   </div>
                 </div>
                 
                 {event.isPaid && event.priceUSDC && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">$</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-xs sm:text-sm">$</span>
                     </div>
-                    <div>
-                      <p className="text-sm text-[var(--app-foreground-muted)]">Price</p>
-                      <p className="font-semibold text-[var(--app-foreground)]">${event.priceUSDC} USDC</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Price</p>
+                      <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base">${event.priceUSDC} USDC</p>
                     </div>
                   </div>
                 )}
@@ -332,9 +334,9 @@ export function EnhancedEventDetailsModal({
             </div>
             
             {event.description && (
-              <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-                <h3 className="font-bold text-lg mb-3 text-[var(--app-foreground)]">About this Event</h3>
-                <p className="text-[var(--app-foreground-muted)] leading-relaxed whitespace-pre-wrap">{event.description}</p>
+              <div className="bg-[var(--app-card-bg)] rounded-xl p-4 sm:p-6 border border-[var(--app-card-border)]">
+                <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-[var(--app-foreground)]">About this Event</h3>
+                <p className="text-[var(--app-foreground-muted)] text-sm sm:text-base leading-relaxed whitespace-pre-wrap">{event.description}</p>
               </div>
             )}
             
@@ -346,10 +348,10 @@ export function EnhancedEventDetailsModal({
             
             {event.tags.length > 0 && (
               <div>
-                <h3 className="font-bold text-lg mb-3 text-[var(--app-foreground)]">Tags</h3>
-                <div className="flex flex-wrap gap-2">
+                <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-[var(--app-foreground)]">Tags</h3>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {event.tags.map((tag, tagIndex) => (
-                    <span key={`modal-tag-${event.id}-${tagIndex}-${tag}`} className="bg-gradient-to-r from-[var(--app-accent)]/20 to-[var(--app-accent)]/10 text-[var(--app-accent)] px-4 py-2 rounded-full text-sm font-medium border border-[var(--app-accent)]/20">
+                    <span key={`modal-tag-${event.id}-${tagIndex}-${tag}`} className="bg-gradient-to-r from-[var(--app-accent)]/20 to-[var(--app-accent)]/10 text-[var(--app-accent)] px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border border-[var(--app-accent)]/20">
                       #{tag}
                     </span>
                   ))}
@@ -358,48 +360,48 @@ export function EnhancedEventDetailsModal({
             )}
             
             {/* Attendees Section */}
-            <div className="bg-[var(--app-card-bg)] rounded-xl p-6 border border-[var(--app-card-border)]">
-              <div className="flex items-center justify-between mb-4">
-              <div>
-                  <h3 className="font-bold text-lg text-[var(--app-foreground)]">
+            <div className="bg-[var(--app-card-bg)] rounded-xl p-4 sm:p-6 border border-[var(--app-card-border)]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-2">
+                <div className="flex-1">
+                  <h3 className="font-bold text-base sm:text-lg text-[var(--app-foreground)]">
                     Attendees ({event.attendees.length}{event.maxAttendees && ` / ${event.maxAttendees}`})
                   </h3>
-                <button
-                  onClick={() => setShowAttendees(!showAttendees)}
-                    className="text-[var(--app-accent)] text-sm hover:underline font-medium mt-1"
-                >
-                  {showAttendees ? 'Hide' : 'Show'} attendee list
-                </button>
-              </div>
-              {event.maxAttendees && (
-                <div className="text-right">
-                  <div className="text-sm text-[var(--app-foreground-muted)]">Capacity</div>
-                    <div className="text-2xl font-bold text-[var(--app-accent)]">
-                      {event.attendees.length} / {event.maxAttendees}
-                    </div>
-                    <div className="w-full bg-[var(--app-gray)] rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-[var(--app-accent)] h-2 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.min((event.attendees.length / event.maxAttendees) * 100, 100)}%` }}
-                      />
-                    </div>
+                  <button
+                    onClick={() => setShowAttendees(!showAttendees)}
+                      className="text-[var(--app-accent)] text-xs sm:text-sm hover:underline font-medium mt-1"
+                  >
+                    {showAttendees ? 'Hide' : 'Show'} attendee list
+                  </button>
                 </div>
-              )}
-            </div>
+                {event.maxAttendees && (
+                  <div className="text-left sm:text-right">
+                    <div className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Capacity</div>
+                      <div className="text-lg sm:text-2xl font-bold text-[var(--app-accent)]">
+                        {event.attendees.length} / {event.maxAttendees}
+                      </div>
+                      <div className="w-full bg-[var(--app-gray)] rounded-full h-1.5 sm:h-2 mt-1 sm:mt-2">
+                        <div 
+                          className="bg-[var(--app-accent)] h-1.5 sm:h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${Math.min((event.attendees.length / event.maxAttendees) * 100, 100)}%` }}
+                        />
+                      </div>
+                  </div>
+                )}
+              </div>
             {showAttendees && (
-              <div className="bg-[var(--app-gray)] rounded-lg p-4">
+              <div className="bg-[var(--app-gray)] rounded-lg p-3 sm:p-4">
                 {event.attendees.length === 0 ? (
-                  <p className="text-[var(--app-foreground-muted)] text-sm">No attendees yet.</p>
+                  <p className="text-[var(--app-foreground-muted)] text-xs sm:text-sm">No attendees yet.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {event.attendees.map((attendee, idx) => (
                       <div key={attendee + idx} className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-[var(--app-accent)] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[var(--app-accent)] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                           {idx + 1}
                         </div>
-                        <span className="font-mono text-sm break-all">{attendee}</span>
+                        <span className="font-mono text-xs sm:text-sm break-all min-w-0 flex-1">{attendee}</span>
                         {attendee === event.creator && (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Creator</span>
+                          <span className="bg-blue-100 text-blue-800 text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">Creator</span>
                         )}
                       </div>
                     ))}
@@ -420,18 +422,22 @@ export function EnhancedEventDetailsModal({
           />
           
           {/* Calendar Integration Buttons */}
-          <div className="flex gap-2 mt-2">
+          <div className="flex flex-col sm:flex-row gap-2 mt-2">
             <button
               onClick={() => openUrl(getGoogleCalendarUrl(event))}
-              className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#4285F4] text-white text-xs font-semibold hover:bg-[#357ae8] transition"
+              className="inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#4285F4] text-white text-xs font-semibold hover:bg-[#357ae8] transition flex-1 sm:flex-none"
             >
-              <Icon name="calendar" size="sm" className="mr-1" /> Google Calendar
+              <Icon name="calendar" size="sm" className="mr-1" /> 
+              <span className="hidden sm:inline">Google Calendar</span>
+              <span className="sm:hidden">Google</span>
             </button>
             <button
               onClick={() => openUrl(getOutlookCalendarUrl(event))}
-              className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#0072C6] text-white text-xs font-semibold hover:bg-[#005fa3] transition"
+              className="inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#0072C6] text-white text-xs font-semibold hover:bg-[#005fa3] transition flex-1 sm:flex-none"
             >
-              <Icon name="calendar" size="sm" className="mr-1" /> Outlook Calendar
+              <Icon name="calendar" size="sm" className="mr-1" /> 
+              <span className="hidden sm:inline">Outlook Calendar</span>
+              <span className="sm:hidden">Outlook</span>
             </button>
           </div>
 
@@ -446,11 +452,11 @@ export function EnhancedEventDetailsModal({
 
                      {/* Event Management Actions */}
            {isCreator && (
-             <div className="bg-[var(--app-card-bg)] rounded-xl p-4 border border-[var(--app-card-border)]">
-               <h3 className="font-bold text-base mb-3 text-[var(--app-foreground)]">
+             <div className="bg-[var(--app-card-bg)] rounded-xl p-3 sm:p-4 border border-[var(--app-card-border)]">
+               <h3 className="font-bold text-sm sm:text-base mb-2 sm:mb-3 text-[var(--app-foreground)]">
                  Manage Event
                </h3>
-               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1.5 sm:gap-2">
                  <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="w-full text-xs px-2 py-1.5">
                    <Icon name="edit" size="sm" className="mr-1" />
                    <span className="hidden sm:inline">Edit Event</span>
@@ -494,37 +500,37 @@ export function EnhancedEventDetailsModal({
            )}
           
           {/* Comments Section */}
-          <div className="border-t border-[var(--app-card-border)] pt-6">
-            <h3 className="font-semibold mb-4">Discussion ({comments.length})</h3>
+          <div className="border-t border-[var(--app-card-border)] pt-4 sm:pt-6">
+            <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">Discussion ({comments.length})</h3>
             {userAddress && (
-              <form onSubmit={handleAddComment} className="mb-4">
-                <div className="flex gap-2">
+              <form onSubmit={handleAddComment} className="mb-3 sm:mb-4">
+                <div className="flex gap-1.5 sm:gap-2">
                   <input
                     type="text"
                     placeholder="Add a comment..."
                     value={newComment}
                     onChange={e => setNewComment(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-transparent"
+                    className="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-transparent text-sm"
                   />
-                  <Button type="submit" variant="primary" size="sm" disabled={loading || !newComment.trim()}>
+                  <Button type="submit" variant="primary" size="sm" disabled={loading || !newComment.trim()} className="px-3 py-1.5 sm:py-2 text-xs">
                     {loading ? '...' : 'Post'}
                   </Button>
                 </div>
               </form>
             )}
-            <div className="space-y-3 max-h-60 overflow-y-auto">
+            <div className="space-y-2 sm:space-y-3 max-h-48 sm:max-h-60 overflow-y-auto">
               {comments.length === 0 ? (
-                <p className="text-[var(--app-foreground-muted)] text-sm text-center py-4">No comments yet. Be the first to comment!</p>
+                <p className="text-[var(--app-foreground-muted)] text-xs sm:text-sm text-center py-3 sm:py-4">No comments yet. Be the first to comment!</p>
               ) : (
                 comments.map(comment => (
-                  <div key={comment.id} className="bg-[var(--app-gray)] rounded-lg p-3">
+                  <div key={comment.id} className="bg-[var(--app-gray)] rounded-lg p-2.5 sm:p-3">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-medium text-sm">{comment.authorName || comment.author}</span>
+                      <span className="font-medium text-xs sm:text-sm">{comment.authorName || comment.author}</span>
                       <span className="text-xs text-[var(--app-foreground-muted)]">
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm">{comment.content}</p>
+                    <p className="text-xs sm:text-sm">{comment.content}</p>
                   </div>
                 ))
               )}

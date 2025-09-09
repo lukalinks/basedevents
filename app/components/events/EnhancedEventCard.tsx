@@ -184,14 +184,14 @@ export function EnhancedEventCard({
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-[var(--app-foreground-muted)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm text-[var(--app-foreground-muted)]">
             <div className="flex items-center gap-1">
               <Icon name="calendar" size="sm" />
-              <span>{formatDate(event.date, event.time, event.endTime)}</span>
+              <span className="text-xs sm:text-sm">{formatDate(event.date, event.time, event.endTime)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Icon name="location" size="sm" />
-              <span>{event.location}</span>
+              <span className="text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{event.location}</span>
             </div>
           </div>
 
@@ -352,21 +352,36 @@ export function EnhancedEventCard({
             </div>
 
             {event.tags && event.tags.length > 0 && (
-              <div className="flex items-center gap-3 text-[var(--app-foreground-muted)]">
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-[var(--app-foreground-muted)]">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Icon name="star" size="sm" className="text-orange-600" />
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {event.tags.slice(0, 3).map(tag => (
-                    <span key={tag} className="bg-[var(--app-gray)] text-[var(--app-foreground-muted)] text-xs px-2 py-1 rounded-full">
-                      #{tag}
-                    </span>
-                  ))}
-                  {event.tags.length > 3 && (
-                    <span className="text-xs text-[var(--app-foreground-muted)]">
-                      +{event.tags.length - 3} more
-                    </span>
-                  )}
+                <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                  {/* Show 2 tags on mobile, 3 on desktop */}
+                  <div className="flex gap-1 sm:hidden">
+                    {event.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="bg-[var(--app-gray)] text-[var(--app-foreground-muted)] text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                        #{tag}
+                      </span>
+                    ))}
+                    {event.tags.length > 2 && (
+                      <span className="text-xs text-[var(--app-foreground-muted)] whitespace-nowrap">
+                        +{event.tags.length - 2} more
+                      </span>
+                    )}
+                  </div>
+                  <div className="hidden sm:flex gap-1.5">
+                    {event.tags.slice(0, 3).map(tag => (
+                      <span key={tag} className="bg-[var(--app-gray)] text-[var(--app-foreground-muted)] text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                        #{tag}
+                      </span>
+                    ))}
+                    {event.tags.length > 3 && (
+                      <span className="text-xs text-[var(--app-foreground-muted)] whitespace-nowrap">
+                        +{event.tags.length - 3} more
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

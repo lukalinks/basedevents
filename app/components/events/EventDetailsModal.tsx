@@ -349,9 +349,9 @@ export function EnhancedEventDetailsModal({
             {event.tags.length > 0 && (
               <div>
                 <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 text-[var(--app-foreground)]">Tags</h3>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap gap-1 sm:gap-1.5 sm:gap-2">
                   {event.tags.map((tag, tagIndex) => (
-                    <span key={`modal-tag-${event.id}-${tagIndex}-${tag}`} className="bg-gradient-to-r from-[var(--app-accent)]/20 to-[var(--app-accent)]/10 text-[var(--app-accent)] px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border border-[var(--app-accent)]/20">
+                    <span key={`modal-tag-${event.id}-${tagIndex}-${tag}`} className="bg-gradient-to-r from-[var(--app-accent)]/20 to-[var(--app-accent)]/10 text-[var(--app-accent)] px-2 py-1 sm:px-3 sm:py-1.5 lg:px-4 lg:py-2 rounded-full text-xs sm:text-sm font-medium border border-[var(--app-accent)]/20 whitespace-nowrap">
                       #{tag}
                     </span>
                   ))}

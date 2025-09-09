@@ -416,25 +416,25 @@ export function EventDetailsPage({
           )}
 
           {/* Key Event Info */}
-          <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-2xl p-6 border border-[var(--app-accent-light)]/30">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center">
+          <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-2xl p-4 sm:p-6 border border-[var(--app-accent-light)]/30">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center flex-shrink-0">
                   <Icon name="calendar" size="sm" className="text-white" />
                 </div>
-                <div>
-                  <p className="text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
-                  <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time, event.endTime)}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
+                  <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base truncate">{formatDate(event.date, event.time, event.endTime)}</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center flex-shrink-0">
                   <Icon name="location" size="sm" className="text-white" />
                 </div>
-                <div>
-                  <p className="text-sm text-[var(--app-foreground-muted)]">Location</p>
-                  <p className="font-semibold text-[var(--app-foreground)]">{event.location}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-[var(--app-foreground-muted)]">Location</p>
+                  <p className="font-semibold text-[var(--app-foreground)] text-sm sm:text-base truncate">{event.location}</p>
                 </div>
               </div>
             </div>

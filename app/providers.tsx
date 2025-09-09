@@ -23,9 +23,6 @@ export function Providers(props: { children: ReactNode }) {
           name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "EventFI",
           logo: process.env.NEXT_PUBLIC_ICON_URL || "/logo.png",
         },
-        walletConnect: {
-          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-        },
       }}
     >
       {props.children}

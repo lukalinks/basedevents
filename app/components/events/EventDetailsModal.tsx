@@ -7,6 +7,7 @@ import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary, OnchainEventBadges } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
 import { EventSharing } from './EventSharing';
+import { EventSupportComponent } from './EventSupport';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 
 // Enhanced Event Details Modal with comments
@@ -407,6 +408,16 @@ export function EnhancedEventDetailsModal({
               </div>
             )}
           </div>
+          
+          {/* Event Support */}
+          <EventSupportComponent 
+            event={event} 
+            userAddress={userAddress}
+            onSupportSuccessAction={() => {
+              // Could trigger a refresh or show success message
+              console.log('Support transaction completed!');
+            }}
+          />
           
           {/* Calendar Integration Buttons */}
           <div className="flex gap-2 mt-2">

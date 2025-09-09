@@ -257,6 +257,47 @@ export async function notifyEventCreator(
 }
 
 /**
+ * Send confirmation notification to attendee when they register for an event
+ */
+export async function notifyEventAttendee(
+  attendeeAddress: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string
+) {
+  try {
+    const response = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attendeeAddress,
+        notification: {
+          title: `Registration Confirmed: ${eventTitle}`,
+          body: `You're all set! Event is on ${eventDate} at ${eventTime}`,
+          notificationDetails: null
+        }
+      })
+    });
+
+    if (response.ok) {
+      const resJson = await response.json().catch(() => ({}));
+      if (resJson?.state === 'no_token') {
+        console.log('Attendee has not enabled notifications for this app.');
+        return false;
+      }
+      console.log(`✅ Confirmation notification sent to attendee`);
+      return true;
+    } else {
+      console.error('Failed to send attendee notification:', await response.text());
+      return false;
+    }
+  } catch (error) {
+    console.error('Error sending attendee notification:', error);
+    return false;
+  }
+}
+
+/**
  * Send notification for event reminders
  */
 export async function sendEventReminder(

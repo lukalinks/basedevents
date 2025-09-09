@@ -51,6 +51,7 @@ import { Host, getHostByAddress } from "../lib/hosts";
 import { getUserDisplayInfo } from "../lib/basenames";
 import { getUserNFTTickets } from "../lib/events";
 import { getComprehensiveUserProfile } from "../lib/farcaster";
+import { USDCBalance } from "./components/USDCBalance";
 
 // NFT Count Display Component
 function NFTCountDisplay({ userAddress }: { userAddress: string }) {
@@ -302,6 +303,10 @@ function ProfilePage({
                 </div>
                 
                 <NFTCountDisplay userAddress={address} />
+                
+                <div className="mt-3">
+                  <USDCBalance size="md" />
+                </div>
                 
                 {profile?.bio && (
                   <div className="bg-[var(--app-gray)] rounded-xl p-6 border border-[var(--app-card-border)]">
@@ -672,6 +677,17 @@ export default function App() {
   const [error] = useState<string | null>(null);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userDisplayInfo, setUserDisplayInfo] = useState<{
+    displayName: string;
+    avatar: string | null;
+    isBaseName: boolean;
+    baseName?: string;
+    address: string;
+    username: string | null;
+    fid: number | null;
+    isFarcasterUser: boolean;
+    source: 'farcaster' | 'local' | 'fallback';
+  } | null>(null);
 
   // Add event handler
     const handleAddEvent = async (event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -872,19 +888,40 @@ export default function App() {
       // Show success message
       const successMessage = `🎉 Registration confirmed! You're all set for "${showRegistrationForm.title}". A receipt has been saved${onchain?.paymentTxHash ? ' (tx: ' + onchain.paymentTxHash.slice(0,10) + '...)' : ''}.`;
       
-      // Send Farcaster notification to event creator
+      // Send Farcaster notifications
       try {
+        // Import dynamically to avoid SSR issues
+        const { notifyEventCreator, notifyEventAttendee } = await import('@/lib/farcaster');
+        
+        // Notify event creator
         if (showRegistrationForm.creator && showRegistrationForm.creator !== address) {
-          // Import dynamically to avoid SSR issues
-          const { notifyEventCreator } = await import('@/lib/farcaster');
           await notifyEventCreator(
             showRegistrationForm.creator,
             showRegistrationForm.title,
             address
           );
         }
+        
+        // Notify attendee with confirmation
+        const eventDate = new Date(`${showRegistrationForm.date}T${showRegistrationForm.time}`);
+        const formattedDate = eventDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+        const formattedTime = eventDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+        
+        await notifyEventAttendee(
+          address,
+          showRegistrationForm.title,
+          formattedDate,
+          formattedTime
+        );
       } catch (error) {
-        console.log('Failed to send Farcaster notification:', error);
+        console.log('Failed to send Farcaster notifications:', error);
       }
       
       // Show local toast notification
@@ -1176,6 +1213,63 @@ export default function App() {
     }
   }, [isFrameReady, loadEvents]);
 
+  // Load user display info when address changes
+  useEffect(() => {
+    const loadUserDisplayInfo = async () => {
+      if (!address) {
+        setUserDisplayInfo(null);
+        return;
+      }
+
+      try {
+        // Get comprehensive user profile including Farcaster data
+        const comprehensiveProfile = await getComprehensiveUserProfile(address);
+        
+        // Combine with Base name info
+        const baseNameInfo = await getUserDisplayInfo(
+          address,
+          comprehensiveProfile.displayName,
+          comprehensiveProfile.avatar
+        );
+        
+        setUserDisplayInfo({
+          ...baseNameInfo,
+          username: comprehensiveProfile.username,
+          fid: comprehensiveProfile.fid,
+          isFarcasterUser: comprehensiveProfile.isFarcasterUser,
+          source: comprehensiveProfile.source
+        });
+      } catch (error) {
+        console.error('Error loading user display info:', error);
+        // Fallback to basic address info
+        try {
+          const baseNameInfo = await getUserDisplayInfo(address);
+          setUserDisplayInfo({
+            ...baseNameInfo,
+            username: null,
+            fid: null,
+            isFarcasterUser: false,
+            source: 'fallback'
+          });
+        } catch (fallbackError) {
+          console.error('Error loading fallback profile:', fallbackError);
+          setUserDisplayInfo({
+            displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+            avatar: null,
+            isBaseName: false,
+            address: address,
+            username: null,
+            fid: null,
+            isFarcasterUser: false,
+            source: 'fallback'
+          });
+        }
+      }
+    };
+
+    loadUserDisplayInfo();
+  }, [address]);
+
   // Fallback: Load events after a delay if frame readiness is taking too long
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1308,7 +1402,10 @@ export default function App() {
         </div>
         <Wallet className="z-10">
           <ConnectWallet>
-            <Name className="text-inherit" />
+            <div className="flex items-center gap-2">
+              <Name className="text-inherit" />
+              {address && <USDCBalance size="sm" showLabel={false} className="hidden sm:block" />}
+            </div>
           </ConnectWallet>
           <WalletDropdown>
             <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
@@ -1316,6 +1413,7 @@ export default function App() {
               <Name />
               <Address />
               <EthBalance />
+              <USDCBalance className="mt-2" />
             </Identity>
             <WalletDropdownDisconnect />
           </WalletDropdown>
@@ -1324,6 +1422,13 @@ export default function App() {
 
       {/* Enhanced Main content */}
       <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 w-full overflow-x-hidden lg:ml-64 xl:ml-72 2xl:ml-80 lg:max-w-[calc(100vw-16rem)] xl:max-w-[calc(100vw-18rem)] 2xl:max-w-[calc(100vw-20rem)]">
+        {/* Mobile USDC Balance Display */}
+        {address && (
+          <div className="lg:hidden mb-4 p-3 bg-gradient-to-r from-[var(--app-accent)]/10 to-transparent rounded-xl border border-[var(--app-accent)]/20">
+            <USDCBalance size="md" />
+          </div>
+        )}
+        
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1389,86 +1494,6 @@ export default function App() {
         
         {!isLoading && !error && activeTab === "home" && (
           <>
-            {/* Enhanced Welcome Section */}
-            <div className="mb-6 lg:mb-8">
-              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 xl:p-10 shadow-xl border border-[var(--app-glass-border)]">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                      <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[var(--app-foreground)]">
-                        Welcome to EventFI
-                      </h1>
-                      <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-medium border border-green-200">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span>Desktop Experience</span>
-                      </div>
-                    </div>
-                    <p className="text-base lg:text-lg xl:text-xl text-[var(--app-foreground-muted)] mb-6 lg:mb-8 max-w-3xl">
-                      Discover and create amazing events on Base. Connect with your community through blockchain-powered event management.
-                    </p>
-                    <div className="flex flex-wrap gap-3 lg:gap-4">
-                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium text-blue-800">NFT Tickets</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span className="font-medium text-gray-800">Token Gating</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        <span className="font-medium text-blue-800">USDC Payments</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
-                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        <span className="font-medium text-purple-800">Farcaster Integration</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Desktop Quick Actions */}
-                  <div className="hidden lg:flex flex-col gap-3 min-w-[200px]">
-                    <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                      <h3 className="text-sm font-semibold text-[var(--app-foreground)] mb-3">Quick Actions</h3>
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => {
-                            setActiveTab("create");
-                            setEditingEvent(null);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-accent)] hover:bg-[var(--app-accent)]/10 rounded-lg transition-colors desktop-focus-ring"
-                        >
-                          <Icon name="plus" size="sm" />
-                          Create Event
-                        </button>
-                        <button
-                          onClick={() => setActiveTab("my-events")}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)] rounded-lg transition-colors desktop-focus-ring"
-                        >
-                          <Icon name="heart" size="sm" />
-                          My Events
-                        </button>
-                        <button
-                          onClick={() => setActiveTab("hosts")}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)] rounded-lg transition-colors desktop-focus-ring"
-                        >
-                          <Icon name="users" size="sm" />
-                          Browse Hosts
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Events Section */}
             <div className="space-y-6 lg:space-y-8">
@@ -1686,20 +1711,23 @@ export default function App() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-1.5">
-                {userDisplayInfo?.isBaseName && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Base
-                  </span>
-                )}
-                {userDisplayInfo?.isFarcasterUser && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
-                    FC
-                  </span>
-                )}
+              <div className="space-y-2">
+                <div className="flex gap-1.5">
+                  {userDisplayInfo?.isBaseName && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Base
+                    </span>
+                  )}
+                  {userDisplayInfo?.isFarcasterUser && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                      FC
+                    </span>
+                  )}
+                </div>
+                <USDCBalance size="sm" className="justify-start" />
               </div>
             </div>
           )}

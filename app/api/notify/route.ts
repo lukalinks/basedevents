@@ -5,14 +5,19 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    let { fid, creatorAddress, notification } = body as {
+    let { fid, creatorAddress, attendeeAddress, notification } = body as {
       fid?: number;
       creatorAddress?: string;
+      attendeeAddress?: string;
       notification: { title: string; body: string; notificationDetails?: any };
     };
 
-    if (!fid && creatorAddress) {
-      fid = await getAddressFid(creatorAddress) as number | undefined;
+    // Resolve FID from address if not provided
+    if (!fid) {
+      const address = creatorAddress || attendeeAddress;
+      if (address) {
+        fid = await getAddressFid(address) as number | undefined;
+      }
     }
 
     if (!fid) {

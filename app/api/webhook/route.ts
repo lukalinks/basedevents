@@ -6,81 +6,30 @@ import { sendFrameNotification } from "@/lib/notification-client";
 import { http } from "viem";
 import { createPublicClient } from "viem";
 import { optimism } from "viem/chains";
+import {
+  parseWebhookEvent,
+  verifyAppKeyWithNeynar,
+} from "@farcaster/miniapp-node";
 
 const appName = process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME;
 
-const KEY_REGISTRY_ADDRESS = "0x00000000Fc1237824fb747aBDE0FF18990E59b7e";
-
-const KEY_REGISTRY_ABI = [
-  {
-    inputs: [
-      { name: "fid", type: "uint256" },
-      { name: "key", type: "bytes" },
-    ],
-    name: "keyDataOf",
-    outputs: [
-      {
-        components: [
-          { name: "state", type: "uint8" },
-          { name: "keyType", type: "uint32" },
-        ],
-        name: "",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
-async function verifyFidOwnership(fid: number, appKey: `0x${string}`) {
-  const client = createPublicClient({
-    chain: optimism,
-    transport: http(),
-  });
-
-  try {
-    const result = await client.readContract({
-      address: KEY_REGISTRY_ADDRESS,
-      abi: KEY_REGISTRY_ABI,
-      functionName: "keyDataOf",
-      args: [BigInt(fid), appKey],
-    });
-
-    return result.state === 1 && result.keyType === 1;
-  } catch (error) {
-    console.error("Key Registry verification failed:", error);
-    return false;
-  }
-}
-
-function decode(encoded: string) {
-  return JSON.parse(Buffer.from(encoded, "base64url").toString("utf-8"));
-}
+// Note: Using @farcaster/miniapp-node for proper signature verification
+// The old manual verification functions have been replaced with the official library
 
 export async function POST(request: Request) {
-  const requestJson = await request.json();
+  try {
+    const requestJson = await request.json();
 
-  const { header: encodedHeader, payload: encodedPayload } = requestJson;
-
-  const headerData = decode(encodedHeader);
-  const event = decode(encodedPayload);
-
-  const { fid, key } = headerData;
-
-  const valid = await verifyFidOwnership(fid, key);
-
-  if (!valid) {
-    return Response.json(
-      { success: false, error: "Invalid FID ownership" },
-      { status: 401 },
-    );
-  }
+    // Use proper Farcaster signature verification
+    const data = await parseWebhookEvent(requestJson, verifyAppKeyWithNeynar);
+    
+    const { fid } = data;
+    const event = data as any; // Type assertion for now
 
   switch (event.event) {
-    case "frame_added":
+    case "miniapp_added":
       console.log(
-        "frame_added",
+        "miniapp_added",
         "event.notificationDetails",
         event.notificationDetails,
       );
@@ -97,8 +46,8 @@ export async function POST(request: Request) {
       }
 
       break;
-    case "frame_removed": {
-      console.log("frame_removed");
+    case "miniapp_removed": {
+      console.log("miniapp_removed");
       await deleteUserNotificationDetails(fid);
       break;
     }
@@ -123,4 +72,42 @@ export async function POST(request: Request) {
   }
 
   return Response.json({ success: true });
+  
+  } catch (error: unknown) {
+    console.error('Webhook verification failed:', error);
+    
+    // Handle different types of verification errors
+    if (error && typeof error === 'object' && 'name' in error) {
+      const errorName = (error as any).name;
+      
+      switch (errorName) {
+        case "VerifyJsonFarcasterSignature.InvalidDataError":
+        case "VerifyJsonFarcasterSignature.InvalidEventDataError":
+          return Response.json(
+            { success: false, error: "Invalid request data" },
+            { status: 400 }
+          );
+        case "VerifyJsonFarcasterSignature.InvalidAppKeyError":
+          return Response.json(
+            { success: false, error: "Invalid app key" },
+            { status: 401 }
+          );
+        case "VerifyJsonFarcasterSignature.VerifyAppKeyError":
+          return Response.json(
+            { success: false, error: "App key verification failed" },
+            { status: 500 }
+          );
+        default:
+          return Response.json(
+            { success: false, error: "Verification failed" },
+            { status: 400 }
+          );
+      }
+    }
+    
+    return Response.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

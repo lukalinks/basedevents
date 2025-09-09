@@ -478,33 +478,66 @@ export function EventDetailsPage({
 
           {/* Event Management Actions */}
           {isCreator && (
-            <div className="bg-[var(--app-card-bg)] rounded-xl p-4 border border-[var(--app-card-border)]">
-              <h3 className="font-bold text-base mb-3 text-[var(--app-foreground)]">Manage Event</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="text-xs px-2 py-1.5">
-                  <Icon name="edit" size="sm" className="mr-1" />
-                  <span className="hidden sm:inline">Edit Event</span>
-                  <span className="sm:hidden">Edit</span>
-                </Button>
-                
-                {onDownloadCSVAction && (
+            <div className="bg-[var(--app-card-bg)] rounded-xl p-4 sm:p-6 border border-[var(--app-card-border)]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[var(--app-accent)]/10 rounded-lg flex items-center justify-center">
+                  <Icon name="edit" size="sm" className="text-[var(--app-accent)]" />
+                </div>
+                <h3 className="font-bold text-lg text-[var(--app-foreground)]">Manage Event</h3>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Primary Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button 
-                    variant="primary" 
+                    variant="outline" 
                     size="sm" 
-                    onClick={() => onDownloadCSVAction(event.id, event.title)}
-                    className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 font-semibold shadow-lg text-xs px-2 py-1.5"
+                    onClick={() => onEditAction && onEditAction(event)} 
+                    className="w-full text-sm px-4 py-3 border-[var(--app-accent)]/30 text-[var(--app-accent)] hover:bg-[var(--app-accent)]/10 hover:border-[var(--app-accent)]/50 transition-all"
                   >
-                    <span className="mr-1 text-sm">📊</span>
-                    <span className="hidden sm:inline">Download CSV</span>
-                    <span className="sm:hidden">CSV</span>
+                    <Icon name="edit" size="sm" className="mr-2" />
+                    Edit Event
                   </Button>
-                )}
+                  
+                  {onDownloadCSVAction && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onDownloadCSVAction(event.id, event.title)}
+                      className="w-full text-sm px-4 py-3 border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all"
+                    >
+                      <span className="text-base mr-2">📊</span>
+                      Download CSV
+                    </Button>
+                  )}
+                </div>
                 
-                <Button variant="ghost" size="sm" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="text-red-500 hover:bg-red-50 hover:text-red-600 text-xs px-2 py-1.5">
-                  <Icon name="trash" size="sm" className="mr-1" />
-                  <span className="hidden sm:inline">Delete Event</span>
-                  <span className="sm:hidden">Delete</span>
-                </Button>
+                {/* Danger Actions */}
+                <div className="border-t border-[var(--app-card-border)] pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onDeleteAction && onDeleteAction(event.id)} 
+                      className="w-full text-sm px-4 py-3 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all"
+                    >
+                      <Icon name="trash" size="sm" className="mr-2" />
+                      Delete Event
+                    </Button>
+                    
+                    {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onCancelEventAction(event.id)} 
+                        className="w-full text-sm px-4 py-3 border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400 transition-all"
+                      >
+                        <span className="text-base mr-2">⚠️</span>
+                        Cancel Event
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

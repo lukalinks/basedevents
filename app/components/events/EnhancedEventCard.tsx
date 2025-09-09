@@ -418,7 +418,7 @@ export function EnhancedEventCard({
               )}
               
               {isCreator && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -426,7 +426,7 @@ export function EnhancedEventCard({
                       e.stopPropagation();
                       if (onEventClick) onEventClick(event);
                     }}
-                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs px-2 py-1.5"
+                    className="bg-[var(--app-accent)]/10 text-[var(--app-accent)] hover:bg-[var(--app-accent)]/20 border-[var(--app-accent)]/30 hover:border-[var(--app-accent)]/50 text-xs px-3 py-2 transition-all"
                   >
                     <Icon name="edit" size="sm" className="mr-1" />
                     <span className="hidden sm:inline">Manage</span>
@@ -441,9 +441,9 @@ export function EnhancedEventCard({
                         e.stopPropagation();
                         onDownloadCSV(event.id, event.title);
                       }}
-                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200 text-xs px-2 py-1.5"
+                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200 hover:border-green-300 text-xs px-3 py-2 transition-all"
                     >
-                      <Icon name="download" size="sm" className="mr-1" />
+                      <span className="text-sm mr-1">📊</span>
                       <span className="hidden sm:inline">Export</span>
                       <span className="sm:hidden">Export</span>
                     </Button>

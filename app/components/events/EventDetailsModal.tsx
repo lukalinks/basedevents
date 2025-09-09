@@ -452,46 +452,81 @@ export function EnhancedEventDetailsModal({
 
                      {/* Event Management Actions */}
            {isCreator && (
-             <div className="bg-[var(--app-card-bg)] rounded-xl p-3 sm:p-4 border border-[var(--app-card-border)]">
-               <h3 className="font-bold text-sm sm:text-base mb-2 sm:mb-3 text-[var(--app-foreground)]">
-                 Manage Event
-               </h3>
-               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1.5 sm:gap-2">
-                 <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="w-full text-xs px-2 py-1.5">
-                   <Icon name="edit" size="sm" className="mr-1" />
-                   <span className="hidden sm:inline">Edit Event</span>
-                   <span className="sm:hidden">Edit</span>
-                 </Button>
-                 
-                 {onDownloadCSVAction && (
-                   <Button variant="outline" size="sm" onClick={() => onDownloadCSVAction(event.id, event.title)} className="w-full text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-2 py-1.5">
-                     <span className="text-sm mr-1">📊</span>
-                     <span className="hidden sm:inline">Download CSV</span>
-                     <span className="sm:hidden">CSV</span>
+             <div className="bg-[var(--app-card-bg)] rounded-xl p-4 sm:p-6 border border-[var(--app-card-border)]">
+               <div className="flex items-center gap-2 mb-4">
+                 <div className="w-8 h-8 bg-[var(--app-accent)]/10 rounded-lg flex items-center justify-center">
+                   <Icon name="edit" size="sm" className="text-[var(--app-accent)]" />
+                 </div>
+                 <h3 className="font-bold text-base sm:text-lg text-[var(--app-foreground)]">
+                   Manage Event
+                 </h3>
+               </div>
+               
+               <div className="space-y-3">
+                 {/* Primary Actions */}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <Button 
+                     variant="outline" 
+                     size="sm" 
+                     onClick={() => onEditAction && onEditAction(event)} 
+                     className="w-full text-sm px-4 py-3 border-[var(--app-accent)]/30 text-[var(--app-accent)] hover:bg-[var(--app-accent)]/10 hover:border-[var(--app-accent)]/50 transition-all"
+                   >
+                     <Icon name="edit" size="sm" className="mr-2" />
+                     Edit Event
                    </Button>
-                 )}
+                   
+                   {onDownloadCSVAction && (
+                     <Button 
+                       variant="outline" 
+                       size="sm" 
+                       onClick={() => onDownloadCSVAction(event.id, event.title)} 
+                       className="w-full text-sm px-4 py-3 border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all"
+                     >
+                       <span className="text-base mr-2">📊</span>
+                       Download CSV
+                     </Button>
+                   )}
+                 </div>
                  
-                 <div className="w-full">
+                 {/* Sharing */}
+                 <div className="bg-[var(--app-accent)]/5 rounded-lg p-3 border border-[var(--app-accent)]/20">
+                   <div className="flex items-center gap-2 mb-2">
+                     <Icon name="share" size="sm" className="text-[var(--app-accent)]" />
+                     <span className="text-sm font-medium text-[var(--app-foreground)]">Share Event</span>
+                   </div>
                    <EventSharing event={event} variant="default" />
                  </div>
                  
-                 {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
-                   <Button variant="outline" size="sm" onClick={() => onCancelEventAction(event.id)} className="w-full text-orange-600 hover:bg-orange-50 hover:text-orange-700 text-xs px-2 py-1.5">
-                     <span className="text-xs mr-1">⚠️</span>
-                     <span className="hidden sm:inline">Cancel Event</span>
-                     <span className="sm:hidden">Cancel</span>
-                   </Button>
-                 )}
-                 
-                 <Button variant="ghost" size="sm" onClick={() => onDeleteAction && onDeleteAction(event.id)} className="w-full text-red-500 hover:bg-red-50 hover:text-red-600 text-xs px-2 py-1.5">
-                   <Icon name="trash" size="sm" className="mr-1" />
-                   <span className="hidden sm:inline">Delete Event</span>
-                   <span className="sm:hidden">Delete</span>
-                 </Button>
+                 {/* Danger Actions */}
+                 <div className="border-t border-[var(--app-card-border)] pt-3">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                     {onCancelEventAction && event.status !== 'cancelled' && status !== 'past' && (
+                       <Button 
+                         variant="outline" 
+                         size="sm" 
+                         onClick={() => onCancelEventAction(event.id)} 
+                         className="w-full text-sm px-4 py-3 border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400 transition-all"
+                       >
+                         <span className="text-base mr-2">⚠️</span>
+                         Cancel Event
+                       </Button>
+                     )}
+                     
+                     <Button 
+                       variant="outline" 
+                       size="sm" 
+                       onClick={() => onDeleteAction && onDeleteAction(event.id)} 
+                       className="w-full text-sm px-4 py-3 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all"
+                     >
+                       <Icon name="trash" size="sm" className="mr-2" />
+                       Delete Event
+                     </Button>
+                   </div>
+                 </div>
                  
                  {event.status === 'cancelled' && (
-                   <div className="col-span-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg">
-                     <span className="text-xs">❌</span>
+                   <div className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg border border-gray-200">
+                     <span className="text-base">❌</span>
                      <span>Event Cancelled</span>
                    </div>
                  )}

@@ -1300,8 +1300,8 @@ export default function App() {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-xl tracking-tight">
-              <span className="text-[var(--app-accent)]">Based</span>
-              <span className="text-[var(--app-foreground-muted)]">Events</span>
+              <span className="text-[var(--app-accent)]">Event</span>
+              <span className="text-[var(--app-foreground-muted)]">FI</span>
             </span>
             <span className="text-xs text-[var(--app-foreground-muted)]">Find Your Next Event</span>
           </div>

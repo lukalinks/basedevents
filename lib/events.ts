@@ -92,6 +92,20 @@ export interface TokenGateResult {
   error?: string
 }
 
+export interface EventSupport {
+  id: string
+  eventId: string
+  supporterAddress: string
+  supporterName?: string
+  hostAddress: string
+  amountUSDC: number
+  txHash: string
+  chainId: number
+  status: 'pending' | 'confirmed' | 'failed'
+  createdAt: string
+  confirmedAt?: string
+}
+
 // Create a new event
 export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event> {
   console.log('Creating event with data:', eventData);
@@ -1169,4 +1183,132 @@ export async function getNFTTicketDetails(registrationId: string): Promise<Event
     console.error('Error fetching NFT ticket details:', error);
     throw error;
   }
+}
+
+// Support an event with USDC
+export async function supportEvent(
+  eventId: string,
+  supporterAddress: string,
+  hostAddress: string,
+  amountUSDC: number,
+  txHash: string,
+  supporterName?: string
+): Promise<EventSupport> {
+  console.log('📝 Recording support transaction:', { eventId, supporterAddress, hostAddress, amountUSDC, txHash });
+  
+  try {
+    const supportData = {
+      event_id: eventId,
+      supporter_address: supporterAddress,
+      supporter_name: supporterName || null,
+      host_address: hostAddress,
+      amount_usdc: amountUSDC,
+      tx_hash: txHash,
+      chain_id: 8453, // Base mainnet
+      status: 'pending'
+    };
+
+    const { data, error } = await supabase
+      .from('event_support')
+      .insert([supportData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error recording support transaction:', error);
+      throw error;
+    }
+
+    console.log('✅ Support transaction recorded successfully:', data);
+    return transformSupportFromDB(data);
+  } catch (error) {
+    console.error('❌ Failed to record support transaction:', error);
+    throw error;
+  }
+}
+
+// Get support transactions for an event
+export async function getEventSupport(eventId: string): Promise<EventSupport[]> {
+  try {
+    const { data, error } = await supabase
+      .from('event_support')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('status', 'confirmed')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching event support:', error);
+      throw error;
+    }
+
+    return data?.map(transformSupportFromDB) || [];
+  } catch (error) {
+    console.error('Failed to fetch event support:', error);
+    throw error;
+  }
+}
+
+// Get total support amount for an event
+export async function getEventSupportTotal(eventId: string): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('event_support')
+      .select('amount_usdc')
+      .eq('event_id', eventId)
+      .eq('status', 'confirmed');
+
+    if (error) {
+      console.error('Error fetching event support total:', error);
+      return 0;
+    }
+
+    const total = data?.reduce((sum, support) => sum + parseFloat(support.amount_usdc), 0) || 0;
+    return Math.round(total * 100) / 100; // Round to 2 decimal places
+  } catch (error) {
+    console.error('Failed to calculate event support total:', error);
+    return 0;
+  }
+}
+
+// Confirm support transaction (called by webhook or manual verification)
+export async function confirmSupportTransaction(txHash: string): Promise<EventSupport | null> {
+  try {
+    const { data, error } = await supabase
+      .from('event_support')
+      .update({ 
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString()
+      })
+      .eq('tx_hash', txHash)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error confirming support transaction:', error);
+      throw error;
+    }
+
+    return data ? transformSupportFromDB(data) : null;
+  } catch (error) {
+    console.error('Failed to confirm support transaction:', error);
+    throw error;
+  }
+}
+
+// Transform database row to EventSupport interface
+function transformSupportFromDB(dbSupport: any): EventSupport {
+  return {
+    id: dbSupport.id,
+    eventId: dbSupport.event_id,
+    supporterAddress: dbSupport.supporter_address,
+    supporterName: dbSupport.supporter_name,
+    hostAddress: dbSupport.host_address,
+    amountUSDC: parseFloat(dbSupport.amount_usdc),
+    txHash: dbSupport.tx_hash,
+    chainId: dbSupport.chain_id,
+    status: dbSupport.status,
+    createdAt: dbSupport.created_at,
+    confirmedAt: dbSupport.confirmed_at
+  };
 }

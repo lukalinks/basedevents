@@ -12,6 +12,7 @@ export interface Event {
   attendees: string[]
   maxAttendees?: number
   tags: string[]
+  category: string
   isRecurring: boolean
   recurringPattern?: 'daily' | 'weekly' | 'monthly'
   status: 'upcoming' | 'past' | 'cancelled'
@@ -839,6 +840,7 @@ function transformEventFromDB(dbEvent: any): Event {
     attendees: dbEvent.attendees || [],
     maxAttendees: dbEvent.max_attendees,
     tags: dbEvent.tags || [],
+    category: dbEvent.category || 'Other',
     isRecurring: dbEvent.is_recurring || false,
     recurringPattern: dbEvent.recurring_pattern,
     status: dbEvent.status || 'upcoming',

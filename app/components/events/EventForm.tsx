@@ -27,6 +27,7 @@ export function EnhancedEventForm({
   const [location, setLocation] = useState(initialEvent?.location || "");
   const [maxAttendees, setMaxAttendees] = useState(initialEvent?.maxAttendees?.toString() || "");
   const [tags, setTags] = useState(initialEvent?.tags.join(", ") || "");
+  const [category, setCategory] = useState(initialEvent?.category || "");
   const [isRecurring, setIsRecurring] = useState(initialEvent?.isRecurring || false);
   const [recurringPattern, setRecurringPattern] = useState<'daily' | 'weekly' | 'monthly'>(initialEvent?.recurringPattern || 'weekly');
   const [loading, setLoading] = useState(false);
@@ -63,6 +64,7 @@ export function EnhancedEventForm({
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!title.trim()) newErrors.title = "Title is required";
+    if (!category.trim()) newErrors.category = "Category is required";
     if (!date) newErrors.date = "Date is required";
     if (!time) newErrors.time = "Time is required";
     if (endTime && time && endTime <= time) {
@@ -146,6 +148,7 @@ export function EnhancedEventForm({
         attendees: initialEvent?.attendees || [],
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
         tags: tags.split(",").map(tag => tag.trim()).filter(tag => tag),
+        category,
         isRecurring,
         recurringPattern: isRecurring ? recurringPattern : undefined,
         status: 'upcoming' as const,
@@ -173,6 +176,7 @@ export function EnhancedEventForm({
         setLocation("");
         setMaxAttendees("");
         setTags("");
+        setCategory("");
         setImageUrl("");
         setIsRecurring(false);
         setIsPaid(false);
@@ -238,6 +242,37 @@ export function EnhancedEventForm({
             rows={4}
             className="w-full px-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all resize-none"
           />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)]">
+              <Icon name="star" size="sm" />
+            </span>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all ${errors.category ? 'border-red-500 bg-red-50' : ''}`}
+              required
+            >
+              <option value="">Select a category</option>
+              <option value="Technology">Technology</option>
+              <option value="Business">Business</option>
+              <option value="Education">Education</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Sports">Sports</option>
+              <option value="Health & Wellness">Health & Wellness</option>
+              <option value="Arts & Culture">Arts & Culture</option>
+              <option value="Food & Drink">Food & Drink</option>
+              <option value="Networking">Networking</option>
+              <option value="Community">Community</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          {errors.category && <div className="text-xs text-red-500 mt-1">{errors.category}</div>}
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

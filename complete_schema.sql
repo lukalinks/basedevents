@@ -36,6 +36,7 @@ CREATE TABLE events (
   attendees TEXT[] DEFAULT ARRAY[]::TEXT[],
   max_attendees INTEGER,
   tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+  category VARCHAR(100) NOT NULL,
   is_recurring BOOLEAN DEFAULT FALSE,
   recurring_pattern VARCHAR(20),
   status VARCHAR(20) DEFAULT 'upcoming',

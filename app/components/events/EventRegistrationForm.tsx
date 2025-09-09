@@ -81,6 +81,8 @@ export function EventRegistrationForm({
     if (!name.trim()) newErrors.name = "Name is required"
     if (!email.trim()) newErrors.email = "Email is required"
     if (email && !/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid"
+    if (!phone.trim()) newErrors.phone = "Phone number is required"
+    if (phone && !/^[\+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) newErrors.phone = "Please enter a valid phone number"
     return newErrors
   }
 
@@ -108,7 +110,7 @@ export function EventRegistrationForm({
       await onRegisterAction({
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         bio: bio.trim() || undefined
       }, onchain)
     } catch (error) {
@@ -289,15 +291,17 @@ export function EventRegistrationForm({
           
           <div>
             <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">
-              Phone Number <span className="text-[var(--app-foreground-muted)] text-xs font-normal">(Optional)</span>
+              Phone Number <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               placeholder="Enter your phone number"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              className="w-full px-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all"
+              className={`w-full px-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all ${errors.phone ? 'border-red-500 bg-red-50' : ''}`}
+              required
             />
+            {errors.phone && <div className="text-xs text-red-500 mt-1">{errors.phone}</div>}
           </div>
           
           <div>

@@ -229,7 +229,7 @@ export function EnhancedEventList({
           {/* Filters Section */}
           {showFilters && (
             <div className="bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-xl p-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                 {/* Location Filter */}
                 {allLocations.length > 0 && (
                   <div className="space-y-3">
@@ -389,9 +389,9 @@ export function EnhancedEventList({
         </div>
       )}
       
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {filteredEvents.length === 0 && (
-          <div className="text-center py-8 text-[var(--app-foreground-muted)]">
+          <div className="col-span-full text-center py-8 text-[var(--app-foreground-muted)]">
             <Icon name="calendar" size="lg" className="mx-auto mb-2 opacity-50" />
             <p>No events found</p>
             {searchQuery && <p className="text-sm">Try adjusting your search</p>}

@@ -205,11 +205,11 @@ function ProfilePage({
   if (!address) return <div className="p-6 text-center text-[var(--app-foreground-muted)]">Connect your wallet to view your profile.</div>;
   
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Enhanced Profile Card */}
-      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
             Profile
           </h2>
           <Button
@@ -217,7 +217,7 @@ function ProfilePage({
             size="sm"
             onClick={() => setShowProfileModal(true)}
             icon={<Icon name="edit" size="sm" />}
-            className="hover:bg-[var(--app-accent-light)] transition-colors"
+            className="hover:bg-[var(--app-accent-light)] transition-colors w-full sm:w-auto"
           >
             Edit Profile
           </Button>
@@ -230,26 +230,26 @@ function ProfilePage({
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="flex flex-col lg:flex-row items-start gap-8">
+            <div className="flex flex-col sm:flex-row lg:flex-row items-start gap-6 lg:gap-8">
               {/* Avatar Section */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 mx-auto sm:mx-0">
               {userDisplayInfo?.avatar ? (
                 <img 
                   src={userDisplayInfo.avatar} 
                   alt="Profile avatar" 
-                    className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover border-4 border-[var(--app-card-border)] shadow-2xl"
+                    className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl object-cover border-4 border-[var(--app-card-border)] shadow-2xl"
                 />
               ) : (
-                  <div className="w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-[var(--app-accent)] via-[var(--app-token-gate)] to-[var(--app-payment)] rounded-2xl flex items-center justify-center text-white font-bold text-3xl lg:text-4xl shadow-2xl">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-[var(--app-accent)] via-[var(--app-token-gate)] to-[var(--app-payment)] rounded-2xl flex items-center justify-center text-white font-bold text-2xl sm:text-3xl lg:text-4xl shadow-2xl">
                   {userDisplayInfo?.displayName ? userDisplayInfo.displayName.charAt(0).toUpperCase() : address.slice(2, 4).toUpperCase()}
                 </div>
               )}
               </div>
               
               {/* Profile Info */}
-              <div className="flex-1 min-w-0 space-y-4">
+              <div className="flex-1 min-w-0 space-y-4 text-center sm:text-left">
                 <div className="space-y-3">
-                  <h3 className="font-bold text-2xl lg:text-3xl text-[var(--app-foreground)]">
+                  <h3 className="font-bold text-xl sm:text-2xl lg:text-3xl text-[var(--app-foreground)]">
                     {userDisplayInfo?.displayName || 'Anonymous User'}
                   </h3>
                   
@@ -338,20 +338,20 @@ function ProfilePage({
       
       <div className="space-y-8">
         {/* Enhanced Event Management Summary */}
-        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border border-blue-200 shadow-lg">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-6 lg:p-8 border border-blue-200 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg mx-auto sm:mx-0">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div>
-              <h3 className="font-bold text-2xl text-gray-900">Event Management</h3>
-              <p className="text-gray-600">Manage your events with ease</p>
+            <div className="text-center sm:text-left">
+              <h3 className="font-bold text-xl sm:text-2xl text-gray-900">Event Management</h3>
+              <p className="text-gray-600 text-sm sm:text-base">Manage your events with ease</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -542,26 +542,26 @@ function HostsPage({ events }: { events: Event[] }) {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 lg:space-y-8 animate-fade-in">
       {/* Enhanced Header Section */}
-      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center shadow-lg">
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center shadow-lg mx-auto sm:mx-0">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
             </svg>
       </div>
-          <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+          <div className="text-center sm:text-left">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
               Event Hosts
             </h2>
-            <p className="text-[var(--app-foreground-muted)] text-lg">Discover the community's most active event creators</p>
+            <p className="text-[var(--app-foreground-muted)] text-base sm:text-lg">Discover the community's most active event creators</p>
           </div>
         </div>
       </div>
 
       {/* Hosts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
         {hostStats.length === 0 && (
           <div className="text-center py-16 text-[var(--app-foreground-muted)] col-span-full">
             <div className="w-16 h-16 bg-[var(--app-gray)] rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -1292,18 +1292,18 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[var(--app-background)] via-[var(--app-gray)] to-[var(--app-background)] font-sans text-[var(--app-foreground)]">
       {/* Enhanced Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-card-border)] bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm shadow-lg sticky top-0 z-20">
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 border-b border-[var(--app-card-border)] bg-gradient-to-r from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm shadow-lg sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-xl shadow-md" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-full border-2 border-white"></div>
+            <img src="/logo.png" alt="Logo" className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl shadow-md" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-full border-2 border-white"></div>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-xl tracking-tight">
+            <span className="font-bold text-lg sm:text-xl tracking-tight">
               <span className="text-[var(--app-accent)]">Event</span>
               <span className="text-[var(--app-foreground-muted)]">FI</span>
             </span>
-            <span className="text-xs text-[var(--app-foreground-muted)]">Find Your Next Event</span>
+            <span className="text-xs text-[var(--app-foreground-muted)] hidden sm:block">Find Your Next Event</span>
           </div>
         </div>
         <Wallet className="z-10">
@@ -1323,7 +1323,7 @@ export default function App() {
       </header>
 
       {/* Enhanced Main content */}
-      <main className="flex-1 px-6 pb-24 pt-6 max-w-4xl mx-auto w-full overflow-x-hidden">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 max-w-7xl mx-auto w-full overflow-x-hidden lg:ml-64 xl:ml-72">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1390,28 +1390,30 @@ export default function App() {
         {!isLoading && !error && activeTab === "home" && (
           <>
             {/* Enhanced Welcome Section */}
-            <div className="mb-4">
-              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-[var(--app-glass-border)]">
+            <div className="mb-6 lg:mb-8">
+              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                   <div className="flex-1">
-
-                    <p className="text-lg text-[var(--app-foreground-muted)] mb-4">
-                      Discover and create amazing events on Base.
+                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--app-foreground)] mb-2">
+                      Welcome to EventFI
+                    </h1>
+                    <p className="text-base lg:text-lg text-[var(--app-foreground-muted)] mb-4 lg:mb-6">
+                      Discover and create amazing events on Base. Connect with your community through blockchain-powered event management.
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full text-sm">
                         <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="font-medium text-blue-800">NFT Tickets</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm">
                         <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <span className="font-medium text-gray-800">Token Gating</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full text-sm">
                         <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                         </svg>
@@ -1425,8 +1427,8 @@ export default function App() {
 
             {/* Events Section */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-[var(--app-foreground)]">Discover Events</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--app-foreground)]">Discover Events</h2>
                 {address ? (
                   <Button
                     variant="primary"
@@ -1435,12 +1437,13 @@ export default function App() {
                       setActiveTab("create");
                       setEditingEvent(null);
                     }}
-                    className="px-6 py-2 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
                   >
-                    Create Event
+                    <span className="hidden sm:inline">Create Event</span>
+                    <span className="sm:hidden">Create</span>
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-3 py-1.5">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-3 py-1.5 w-full sm:w-auto justify-center sm:justify-start">
                     <div className="w-5 h-5 bg-blue-100 rounded-lg flex items-center justify-center">
                       <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -1532,7 +1535,7 @@ export default function App() {
         {/* Enhanced Create Event Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative border border-[var(--app-glass-border)]">
+            <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl shadow-2xl p-6 lg:p-8 w-full max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto relative border border-[var(--app-glass-border)]">
               <button
                 className="absolute top-4 right-4 w-8 h-8 bg-[var(--app-gray)] hover:bg-[var(--app-gray-dark)] rounded-full flex items-center justify-center text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-colors"
                 onClick={() => {
@@ -1545,10 +1548,10 @@ export default function App() {
                 </svg>
               </button>
               <div className="mb-6">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
                   {editingEvent ? 'Edit Event' : 'Create New Event'}
                 </h2>
-                <p className="text-[var(--app-foreground-muted)] mt-2">
+                <p className="text-[var(--app-foreground-muted)] mt-2 text-sm sm:text-base">
                   {editingEvent ? 'Update your event details below' : 'Fill in the details to create your event'}
                 </p>
               </div>
@@ -1575,8 +1578,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Enhanced Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-2xl flex justify-around items-center h-20 max-w-4xl mx-auto w-full">
+      {/* Enhanced Bottom Navigation - Mobile Only */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-2xl flex justify-around items-center h-20 max-w-4xl mx-auto w-full lg:hidden">
         {navItems.map((item) => (
           <button
             key={item.key}
@@ -1607,6 +1610,37 @@ export default function App() {
           </button>
         ))}
       </nav>
+
+      {/* Desktop Sidebar Navigation */}
+      <aside className="hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72 bg-gradient-to-b from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border-r border-[var(--app-card-border)] shadow-xl z-10">
+        <div className="p-6">
+          <h3 className="text-sm font-semibold text-[var(--app-foreground-muted)] uppercase tracking-wider mb-4">Navigation</h3>
+          <nav className="space-y-2">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left group ${
+                  activeTab === item.key 
+                    ? "bg-[var(--app-accent-light)] text-[var(--app-accent)] shadow-md" 
+                    : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)]"
+                }`}
+                onClick={() => {
+                  setActiveTab(item.key);
+                  if (item.key === "create") setEditingEvent(null);
+                }}
+              >
+                <div className={`${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
+                  {item.icon}
+                </div>
+                <span className="font-medium">{item.label}</span>
+                {activeTab === item.key && (
+                  <div className="ml-auto w-2 h-2 bg-[var(--app-accent)] rounded-full animate-pulse"></div>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </aside>
     </div>
   );
 }

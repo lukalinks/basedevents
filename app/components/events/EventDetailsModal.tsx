@@ -141,7 +141,7 @@ export function EnhancedEventDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-[var(--app-background)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border-2 border-[var(--app-card-border)] animate-scale-in">
+      <div className="bg-[var(--app-background)] rounded-2xl shadow-2xl w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] flex flex-col border-2 border-[var(--app-card-border)] animate-scale-in">
         {event.imageUrl && (
           <div className="w-full max-h-48 overflow-hidden flex justify-center items-center bg-[var(--app-gray)] flex-shrink-0">
             <img 

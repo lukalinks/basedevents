@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS events (
   description TEXT,
   date DATE NOT NULL,
   time TIME NOT NULL,
+  end_time TIME,
   location VARCHAR(500) NOT NULL,
   creator VARCHAR(255) NOT NULL,
   attendees TEXT[] DEFAULT ARRAY[]::TEXT[],

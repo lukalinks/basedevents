@@ -6,6 +6,7 @@ export interface Event {
   description: string
   date: string
   time: string
+  endTime?: string
   location: string
   creator: string
   attendees: string[]
@@ -101,6 +102,7 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'u
     description: eventData.description,
     date: eventData.date,
     time: eventData.time,
+    end_time: eventData.endTime,
     location: eventData.location,
     creator: eventData.creator,
     attendees: eventData.attendees,
@@ -505,6 +507,7 @@ export async function updateEvent(eventId: string, updates: Partial<Omit<Event, 
   if (updates.description !== undefined) dbUpdates.description = updates.description
   if (updates.date !== undefined) dbUpdates.date = updates.date
   if (updates.time !== undefined) dbUpdates.time = updates.time
+  if (updates.endTime !== undefined) dbUpdates.end_time = updates.endTime
   if (updates.location !== undefined) dbUpdates.location = updates.location
   if (updates.creator !== undefined) dbUpdates.creator = updates.creator
   if (updates.attendees !== undefined) dbUpdates.attendees = updates.attendees
@@ -816,6 +819,7 @@ function transformEventFromDB(dbEvent: any): Event {
     description: dbEvent.description,
     date: dbEvent.date,
     time: dbEvent.time,
+    endTime: dbEvent.end_time,
     location: dbEvent.location,
     creator: dbEvent.creator,
     attendees: dbEvent.attendees || [],

@@ -105,9 +105,9 @@ export function EnhancedEventDetailsModal({
   const canRSVP = userAddress && !isCreator && !isRegistered;
   const isFull = event.maxAttendees && event.attendees.length >= event.maxAttendees;
   
-  const formatDate = (date: string, time: string) => {
+  const formatDate = (date: string, time: string, endTime?: string) => {
     const eventDate = new Date(`${date}T${time}`);
-    return eventDate.toLocaleDateString('en-US', {
+    const baseFormat = eventDate.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -115,12 +115,23 @@ export function EnhancedEventDetailsModal({
       hour: 'numeric',
       minute: '2-digit'
     });
+    
+    if (endTime) {
+      const endDate = new Date(`${date}T${endTime}`);
+      const endFormat = endDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+      return `${baseFormat} - ${endFormat}`;
+    }
+    
+    return baseFormat;
   };
 
   // Utility functions for calendar integration
   function getGoogleCalendarUrl(event: Event) {
     const start = encodeURIComponent(`${event.date}T${event.time}`);
-    const end = encodeURIComponent(`${event.date}T${event.time}`); // For now, 1 hour duration can be added if needed
+    const end = encodeURIComponent(`${event.date}T${event.endTime || event.time}`);
     const details = encodeURIComponent(event.description || "");
     const location = encodeURIComponent(event.location || "");
     const title = encodeURIComponent(event.title);
@@ -129,7 +140,7 @@ export function EnhancedEventDetailsModal({
 
   function getOutlookCalendarUrl(event: Event) {
     const start = encodeURIComponent(`${event.date}T${event.time}`);
-    const end = encodeURIComponent(`${event.date}T${event.time}`); // For now, 1 hour duration can be added if needed
+    const end = encodeURIComponent(`${event.date}T${event.endTime || event.time}`);
     const details = encodeURIComponent(event.description || "");
     const location = encodeURIComponent(event.location || "");
     const title = encodeURIComponent(event.title);
@@ -279,7 +290,7 @@ export function EnhancedEventDetailsModal({
                   </div>
                   <div>
                     <p className="text-sm text-[var(--app-foreground-muted)]">Date & Time</p>
-                    <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time)}</p>
+                    <p className="font-semibold text-[var(--app-foreground)]">{formatDate(event.date, event.time, event.endTime)}</p>
                   </div>
             </div>
             

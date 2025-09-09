@@ -23,6 +23,7 @@ export function EnhancedEventForm({
   const [description, setDescription] = useState(initialEvent?.description || "");
   const [date, setDate] = useState(initialEvent?.date || "");
   const [time, setTime] = useState(initialEvent?.time || "");
+  const [endTime, setEndTime] = useState(initialEvent?.endTime || "");
   const [location, setLocation] = useState(initialEvent?.location || "");
   const [maxAttendees, setMaxAttendees] = useState(initialEvent?.maxAttendees?.toString() || "");
   const [tags, setTags] = useState(initialEvent?.tags.join(", ") || "");
@@ -64,6 +65,9 @@ export function EnhancedEventForm({
     if (!title.trim()) newErrors.title = "Title is required";
     if (!date) newErrors.date = "Date is required";
     if (!time) newErrors.time = "Time is required";
+    if (endTime && time && endTime <= time) {
+      newErrors.endTime = "End time must be after start time";
+    }
     if (eventMode === 'physical') {
       if (!location.trim()) newErrors.location = "Location is required";
     } else {
@@ -136,6 +140,7 @@ export function EnhancedEventForm({
         description,
         date,
         time,
+        endTime: endTime || undefined,
         location: finalLocation,
         creator: address || "",
         attendees: initialEvent?.attendees || [],
@@ -164,6 +169,7 @@ export function EnhancedEventForm({
         setDescription("");
         setDate("");
         setTime("");
+        setEndTime("");
         setLocation("");
         setMaxAttendees("");
         setTags("");
@@ -255,7 +261,7 @@ export function EnhancedEventForm({
           </div>
           <div>
             <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">
-              Time <span className="text-red-500">*</span>
+              Start Time <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)]">
@@ -271,6 +277,24 @@ export function EnhancedEventForm({
             </div>
             {errors.time && <div className="text-xs text-red-500 mt-1">{errors.time}</div>}
           </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">
+            End Time (Optional)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)]">
+              <Icon name="clock" size="sm" />
+            </span>
+            <input
+              type="time"
+              value={endTime}
+              onChange={e => setEndTime(e.target.value)}
+              className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all ${errors.endTime ? 'border-red-500 bg-red-50' : ''}`}
+            />
+          </div>
+          {errors.endTime && <div className="text-xs text-red-500 mt-1">{errors.endTime}</div>}
         </div>
         
         {/* Event Type and Payment */}

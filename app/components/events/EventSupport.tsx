@@ -30,8 +30,18 @@ export function EventSupportComponent({
     hash,
   });
 
-  const isCreator = userAddress && event.creator === userAddress;
-  const canSupport = userAddress && !isCreator && userAddress === address;
+  const isCreator = address && event.creator === address;
+  const canSupport = address && !isCreator;
+
+  // Log support component state for debugging
+  useEffect(() => {
+    console.log('💜 EventSupport:', { 
+      connected: !!address, 
+      isCreator, 
+      canSupport, 
+      supportTotal 
+    });
+  }, [address, isCreator, canSupport, supportTotal]);
 
   useEffect(() => {
     loadSupportTotal();
@@ -60,7 +70,7 @@ export function EventSupportComponent({
   };
 
   const handleSupport = async () => {
-    if (!userAddress || !amount || isSupporting) return;
+    if (!address || !amount || isSupporting) return;
 
     const amountNum = parseFloat(amount);
     if (amountNum <= 0) {
@@ -109,7 +119,7 @@ export function EventSupportComponent({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          supporterAddress: userAddress,
+          supporterAddress: address,
           amountUSDC: parseFloat(amount),
           txHash: txHash,
           supporterName: address, // Could be enhanced with actual user name
@@ -154,6 +164,27 @@ export function EventSupportComponent({
                 Thank you to your supporters! 🎉
               </p>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show a connection prompt if wallet is not connected
+  if (!address) {
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-blue-800 mb-1">Connect Wallet to Support</h3>
+            <p className="text-blue-600 text-sm">
+              Connect your wallet to show support for this event with USDC
+            </p>
           </div>
         </div>
       </div>

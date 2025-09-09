@@ -10,14 +10,11 @@ import {
 export const config = createConfig({
   chains: [base],
   connectors: [
-    // Mobile-first connectors
-    injected({
-      target: 'metaMask',
-    }),
+    // Prioritize Coinbase Wallet for OnchainKit integration
     coinbaseWallet({
       appName: 'EventFI',
       appLogoUrl: '/logo.png',
-      headlessMode: true, // Better mobile support
+      headlessMode: false, // Enable full UI for better UX
     }),
     metaMask({
       dappMetadata: {
@@ -25,6 +22,9 @@ export const config = createConfig({
         url: typeof window !== 'undefined' ? window.location.origin : '',
         iconUrl: '/logo.png',
       },
+    }),
+    injected({
+      target: 'metaMask',
     }),
     walletConnect({
       projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '',

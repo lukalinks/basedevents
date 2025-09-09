@@ -252,10 +252,10 @@ export function EnhancedEventCard({
   // Default variant
   return (
     <div 
-      className={`bg-[var(--app-card-bg)] border rounded-xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer relative group ${
+      className={`bg-[var(--app-card-bg)] border rounded-xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer relative group transform hover:scale-[1.02] ${
         event.status === 'cancelled' 
           ? 'border-red-300 bg-gradient-to-br from-red-50/30 to-red-100/20' 
-          : 'border-[var(--app-card-border)] hover:border-[var(--app-accent)]/30'
+          : 'border-[var(--app-card-border)] hover:border-[var(--app-accent)]/30 hover:shadow-2xl'
       }`}
       onClick={() => onEventClick && onEventClick(event)}
       onMouseEnter={() => setIsHovered(true)}

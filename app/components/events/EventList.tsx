@@ -188,7 +188,7 @@ export function EnhancedEventList({
             <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search events..."
+              placeholder="Search events by title, description, or location..."
               value={localSearchQuery}
               onChange={e => {
                 setLocalSearchQuery(e.target.value);
@@ -196,7 +196,7 @@ export function EnhancedEventList({
                   onSearchAction(e.target.value, selectedTags || []);
                 }
               }}
-              className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all text-sm sm:text-base"
+              className="w-full pl-10 pr-4 py-3 sm:py-4 lg:py-5 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all text-sm sm:text-base lg:text-lg shadow-sm focus:shadow-md"
             />
           </div>
           
@@ -240,7 +240,7 @@ export function EnhancedEventList({
           {/* Filters Section */}
           {showFilters && (
             <div className="bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-xl p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 {/* Location Filter */}
                 {allLocations.length > 0 && (
                   <div className="space-y-3">
@@ -400,7 +400,7 @@ export function EnhancedEventList({
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
         {filteredEvents.length === 0 && (
           <div className="col-span-full text-center py-8 text-[var(--app-foreground-muted)]">
             <Icon name="calendar" size="lg" className="mx-auto mb-2 opacity-50" />

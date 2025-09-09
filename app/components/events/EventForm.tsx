@@ -516,6 +516,29 @@ export function EnhancedEventForm({
           />
         </div>
         
+        {/* Max Attendees */}
+        <div>
+          <label className="block text-sm font-semibold text-[var(--app-foreground)] mb-2">
+            Maximum Attendees <span className="text-[var(--app-foreground-muted)] text-xs font-normal">(Optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-accent)]">
+              <Icon name="users" size="sm" />
+            </span>
+            <input
+              type="number"
+              placeholder="Leave empty for unlimited"
+              value={maxAttendees}
+              onChange={e => setMaxAttendees(e.target.value)}
+              min="1"
+              className="w-full pl-10 pr-4 py-3 border-2 rounded-lg bg-[var(--app-background)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] shadow-sm transition-all"
+            />
+          </div>
+          <div className="text-xs text-[var(--app-foreground-muted)] mt-1">
+            Set a limit on the number of people who can register for this event
+          </div>
+        </div>
+        
         {/* Recurring Event */}
         <div className="flex items-center space-x-3">
           <input

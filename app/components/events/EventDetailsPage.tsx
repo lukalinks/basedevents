@@ -7,6 +7,7 @@ import { TokenRequirementDisplay } from '../TokenGating';
 import { OnchainActivitySummary } from '../OnchainStatusIndicators';
 import { EventAttendeesList } from './EventAttendeesList';
 import { EventSharing } from './EventSharing';
+import { EventSupportComponent } from './EventSupport';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { getUserDisplayInfo } from "@/lib/basenames";
 
@@ -448,6 +449,16 @@ export function EventDetailsPage({
           
           {/* Token Requirement Display */}
           <TokenRequirementDisplay event={event} showDetails={true} />
+          
+          {/* Event Support */}
+          <EventSupportComponent 
+            event={event} 
+            userAddress={userAddress}
+            onSupportSuccess={() => {
+              // Could trigger a refresh or show success message
+              console.log('Support transaction completed!');
+            }}
+          />
           
           {/* Onchain Activity Summary */}
           <OnchainActivitySummary event={event} userAddress={userAddress} />

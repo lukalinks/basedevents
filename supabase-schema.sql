@@ -43,6 +43,21 @@ CREATE TABLE IF NOT EXISTS event_comments (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create event_support table for USDC support transactions
+CREATE TABLE IF NOT EXISTS event_support (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  supporter_address VARCHAR(255) NOT NULL,
+  supporter_name VARCHAR(255),
+  host_address VARCHAR(255) NOT NULL,
+  amount_usdc DECIMAL(10,2) NOT NULL,
+  tx_hash VARCHAR(255) NOT NULL UNIQUE,
+  chain_id INTEGER DEFAULT 8453, -- Base mainnet
+  status VARCHAR(20) DEFAULT 'pending', -- pending, confirmed, failed
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  confirmed_at TIMESTAMP WITH TIME ZONE
+);
+
 -- Create event registrations table for detailed user signup information
 CREATE TABLE IF NOT EXISTS event_registrations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

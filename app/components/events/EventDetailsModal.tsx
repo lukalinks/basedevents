@@ -152,7 +152,7 @@ export function EnhancedEventDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-[var(--app-background)] rounded-2xl shadow-2xl w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] flex flex-col border-2 border-[var(--app-card-border)] animate-scale-in">
+      <div className="bg-[var(--app-background)] rounded-2xl shadow-2xl w-full max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl max-h-[95vh] flex flex-col border-2 border-[var(--app-card-border)] animate-scale-in">
         {event.imageUrl && (
           <div className="w-full max-h-48 overflow-hidden flex justify-center items-center bg-[var(--app-gray)] flex-shrink-0">
             <img 
@@ -182,7 +182,7 @@ export function EnhancedEventDetailsModal({
         </div>
         
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-6 space-y-8">
+          <div className="p-6 lg:p-8 xl:p-10 space-y-6 lg:space-y-8">
             {/* Registration Section - TOP PRIORITY */}
             {!isCreator && (
               <div className="bg-gradient-to-r from-[var(--app-accent-light)]/10 to-transparent rounded-xl p-6 border border-[var(--app-accent-light)]/30">
@@ -282,8 +282,8 @@ export function EnhancedEventDetailsModal({
             )}
 
             {/* Key Event Info */}
-            <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-2xl p-6 border border-[var(--app-accent-light)]/30">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-r from-[var(--app-accent-light)]/20 to-transparent rounded-2xl p-6 lg:p-8 border border-[var(--app-accent-light)]/30">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center">
                     <Icon name="calendar" size="sm" className="text-white" />
@@ -295,7 +295,7 @@ export function EnhancedEventDetailsModal({
             </div>
             
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[var(--app-accent)] rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                     <Icon name="location" size="sm" className="text-white" />
                   </div>
                   <div>
@@ -303,6 +303,30 @@ export function EnhancedEventDetailsModal({
                     <p className="font-semibold text-[var(--app-foreground)]">{event.location}</p>
                   </div>
                 </div>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Icon name="users" size="sm" className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--app-foreground-muted)]">Attendees</p>
+                    <p className="font-semibold text-[var(--app-foreground)]">
+                      {event.attendees.length}{event.maxAttendees ? `/${event.maxAttendees}` : ''} registered
+                    </p>
+                  </div>
+                </div>
+                
+                {event.isPaid && event.priceUSDC && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">$</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--app-foreground-muted)]">Price</p>
+                      <p className="font-semibold text-[var(--app-foreground)]">${event.priceUSDC} USDC</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -415,7 +439,7 @@ export function EnhancedEventDetailsModal({
                <h3 className="font-bold text-base mb-3 text-[var(--app-foreground)]">
                  Manage Event
                </h3>
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                  <Button variant="outline" size="sm" onClick={() => onEditAction && onEditAction(event)} className="w-full text-xs px-2 py-1.5">
                    <Icon name="edit" size="sm" className="mr-1" />
                    <span className="hidden sm:inline">Edit Event</span>

@@ -49,6 +49,51 @@ body {
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out;
   }
+  
+  /* Desktop-specific improvements */
+  .desktop-hover-lift {
+    @apply lg:hover:transform lg:hover:scale-105 lg:transition-all lg:duration-300;
+  }
+  
+  .desktop-focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
+  .desktop-smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Better text selection */
+  .select-none {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improved scrollbars for desktop */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+  }
 }
 
 @keyframes fadeIn {

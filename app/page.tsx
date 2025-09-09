@@ -1323,7 +1323,7 @@ export default function App() {
       </header>
 
       {/* Enhanced Main content */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 w-full overflow-x-hidden lg:ml-64 xl:ml-72 lg:max-w-[calc(100vw-16rem)] xl:max-w-[calc(100vw-18rem)]">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 w-full overflow-x-hidden lg:ml-64 xl:ml-72 2xl:ml-80 lg:max-w-[calc(100vw-16rem)] xl:max-w-[calc(100vw-18rem)] 2xl:max-w-[calc(100vw-20rem)]">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1394,30 +1394,75 @@ export default function App() {
               <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 xl:p-10 shadow-xl border border-[var(--app-glass-border)]">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
                   <div className="flex-1">
-                    <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[var(--app-foreground)] mb-3 lg:mb-4">
-                      Welcome to EventFI
-                    </h1>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[var(--app-foreground)]">
+                        Welcome to EventFI
+                      </h1>
+                      <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-medium border border-green-200">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span>Desktop Experience</span>
+                      </div>
+                    </div>
                     <p className="text-base lg:text-lg xl:text-xl text-[var(--app-foreground-muted)] mb-6 lg:mb-8 max-w-3xl">
                       Discover and create amazing events on Base. Connect with your community through blockchain-powered event management.
                     </p>
                     <div className="flex flex-wrap gap-3 lg:gap-4">
-                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
                         <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="font-medium text-blue-800">NFT Tickets</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                      <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
                         <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <span className="font-medium text-gray-800">Token Gating</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
                         <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                         </svg>
                         <span className="font-medium text-blue-800">USDC Payments</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full text-sm lg:text-base desktop-hover-lift">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span className="font-medium text-purple-800">Farcaster Integration</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Desktop Quick Actions */}
+                  <div className="hidden lg:flex flex-col gap-3 min-w-[200px]">
+                    <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <h3 className="text-sm font-semibold text-[var(--app-foreground)] mb-3">Quick Actions</h3>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => {
+                            setActiveTab("create");
+                            setEditingEvent(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-accent)] hover:bg-[var(--app-accent)]/10 rounded-lg transition-colors desktop-focus-ring"
+                        >
+                          <Icon name="plus" size="sm" />
+                          Create Event
+                        </button>
+                        <button
+                          onClick={() => setActiveTab("my-events")}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)] rounded-lg transition-colors desktop-focus-ring"
+                        >
+                          <Icon name="heart" size="sm" />
+                          My Events
+                        </button>
+                        <button
+                          onClick={() => setActiveTab("hosts")}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)] rounded-lg transition-colors desktop-focus-ring"
+                        >
+                          <Icon name="users" size="sm" />
+                          Browse Hosts
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1615,47 +1660,173 @@ export default function App() {
       </nav>
 
       {/* Desktop Sidebar Navigation */}
-      <aside className="hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72 bg-gradient-to-b from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border-r border-[var(--app-card-border)] shadow-xl z-10 overflow-y-auto">
+      <aside className="hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72 2xl:w-80 bg-gradient-to-b from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border-r border-[var(--app-card-border)] shadow-xl z-10 overflow-y-auto custom-scrollbar desktop-smooth-scroll">
         <div className="p-6 h-full flex flex-col">
+          {/* Enhanced User Profile Section */}
+          {address && userDisplayInfo && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-[var(--app-accent)]/10 to-transparent rounded-xl border border-[var(--app-accent)]/20">
+              <div className="flex items-center gap-3 mb-3">
+                {userDisplayInfo?.avatar ? (
+                  <img 
+                    src={userDisplayInfo.avatar} 
+                    alt="Profile" 
+                    className="w-12 h-12 rounded-xl object-cover border-2 border-[var(--app-accent)]/30"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                    {userDisplayInfo?.displayName ? userDisplayInfo.displayName.charAt(0).toUpperCase() : address.slice(2, 4).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-[var(--app-foreground)] text-sm truncate">
+                    {userDisplayInfo?.displayName || 'Anonymous User'}
+                  </h4>
+                  <p className="text-xs text-[var(--app-foreground-muted)] truncate">
+                    {userDisplayInfo?.username ? `@${userDisplayInfo.username}` : `${address.slice(0, 6)}...${address.slice(-4)}`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5">
+                {userDisplayInfo?.isBaseName && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Base
+                  </span>
+                )}
+                {userDisplayInfo?.isFarcasterUser && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                    FC
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-[var(--app-foreground-muted)] uppercase tracking-wider mb-4">Navigation</h3>
             <nav className="space-y-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.key}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left group ${
-                    activeTab === item.key 
-                      ? "bg-[var(--app-accent-light)] text-[var(--app-accent)] shadow-md" 
-                      : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)]"
-                  }`}
-                  onClick={() => {
-                    setActiveTab(item.key);
-                    if (item.key === "create") setEditingEvent(null);
-                  }}
-                >
-                  <div className={`${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
-                    {item.icon}
-                  </div>
-                  <span className="font-medium">{item.label}</span>
-                  {activeTab === item.key && (
-                    <div className="ml-auto w-2 h-2 bg-[var(--app-accent)] rounded-full animate-pulse"></div>
-                  )}
-                </button>
-              ))}
+              {navItems.map((item) => {
+                // Calculate counts for each tab
+                const getTabCount = (key: string) => {
+                  switch (key) {
+                    case 'home':
+                      return events.length;
+                    case 'my-events':
+                      return events.filter(e => e.creator === address || e.attendees.includes(address || "")).length;
+                    case 'hosts':
+                      return [...new Set(events.map(e => e.creator))].length;
+                    case 'profile':
+                      return events.filter(e => e.creator === address).length;
+                    default:
+                      return 0;
+                  }
+                };
+
+                const count = getTabCount(item.key);
+                
+                return (
+                  <button
+                    key={item.key}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left group relative desktop-focus-ring ${
+                      activeTab === item.key 
+                        ? "bg-[var(--app-accent-light)] text-[var(--app-accent)] shadow-md" 
+                        : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)]"
+                    }`}
+                    onClick={() => {
+                      setActiveTab(item.key);
+                      if (item.key === "create") setEditingEvent(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActiveTab(item.key);
+                        if (item.key === "create") setEditingEvent(null);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="tab"
+                    aria-selected={activeTab === item.key}
+                    aria-label={`Navigate to ${item.label}`}
+                  >
+                    <div className={`${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
+                      {item.icon}
+                    </div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="font-medium">{item.label}</span>
+                      {count > 0 && item.key !== 'create' && (
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                          activeTab === item.key 
+                            ? 'bg-[var(--app-accent)] text-white' 
+                            : 'bg-[var(--app-gray)] text-[var(--app-foreground-muted)]'
+                        }`}>
+                          {count}
+                        </span>
+                      )}
+                    </div>
+                    {activeTab === item.key && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--app-accent)] rounded-r-full"></div>
+                    )}
+                  </button>
+                );
+              })}
             </nav>
           </div>
           
           {/* Desktop Footer Info */}
           <div className="mt-auto pt-6 border-t border-[var(--app-card-border)]">
+            {/* Quick Stats */}
+            {address && (
+              <div className="mb-4 p-3 bg-[var(--app-gray)]/50 rounded-xl">
+                <h4 className="text-xs font-semibold text-[var(--app-foreground)] mb-2">Quick Stats</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="text-center">
+                    <div className="font-bold text-[var(--app-accent)]">{events.filter(e => e.creator === address).length}</div>
+                    <div className="text-[var(--app-foreground-muted)]">Created</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-green-600">{events.filter(e => e.attendees.includes(address || "")).length}</div>
+                    <div className="text-[var(--app-foreground-muted)]">Attending</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="text-xs text-[var(--app-foreground-muted)] space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span>Connected to Base</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>EventFI Platform</span>
+                <span>EventFI Platform v2.0</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <span>{events.length} Total Events</span>
+              </div>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => {
+                  setActiveTab("create");
+                  setEditingEvent(null);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[var(--app-accent)] hover:bg-[var(--app-accent)]/10 rounded-lg transition-colors"
+              >
+                <Icon name="plus" size="sm" />
+                Quick Create Event
+              </button>
+              <button
+                onClick={() => setActiveTab("home")}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)] rounded-lg transition-colors"
+              >
+                <Icon name="search" size="sm" />
+                Discover Events
+              </button>
             </div>
           </div>
         </div>

@@ -1323,7 +1323,7 @@ export default function App() {
       </header>
 
       {/* Enhanced Main content */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 max-w-none lg:max-w-7xl mx-auto w-full overflow-x-hidden lg:ml-64 xl:ml-72">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 w-full overflow-x-hidden lg:ml-64 xl:ml-72 lg:max-w-[calc(100vw-16rem)] xl:max-w-[calc(100vw-18rem)]">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1582,7 +1582,7 @@ export default function App() {
       </main>
 
       {/* Enhanced Bottom Navigation - Mobile Only */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-2xl flex justify-around items-center h-20 max-w-4xl mx-auto w-full lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-t border-[var(--app-card-border)] shadow-2xl flex justify-around items-center h-20 w-full lg:hidden">
         {navItems.map((item) => (
           <button
             key={item.key}

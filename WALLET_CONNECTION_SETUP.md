@@ -19,7 +19,7 @@ Create a `.env.local` file in your project root with the following variables:
 NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_onchainkit_api_key_here
 
 # Project configuration
-NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=BasedEvents
+NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=EventFI
 NEXT_PUBLIC_URL=http://localhost:3000
 
 # App images
@@ -117,7 +117,7 @@ If you prefer not to use OnChainKit, you can set up wallet connection manually:
        new CoinbaseWalletConnector({
          chains,
          options: {
-           appName: 'BasedEvents',
+           appName: 'EventFI',
          },
        }),
      ],
@@ -148,7 +148,7 @@ If you're still having issues:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NEXT_PUBLIC_ONCHAINKIT_API_KEY` | ✅ Yes | OnChainKit API key for wallet connection |
-| `NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME` | ❌ No | Project name (defaults to "BasedEvents") |
+| `NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME` | ❌ No | Project name (defaults to "EventFI") |
 | `NEXT_PUBLIC_URL` | ❌ No | App URL (defaults to localhost:3000) |
 | `NEXT_PUBLIC_ICON_URL` | ❌ No | App icon URL |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | ❌ No | WalletConnect project ID for additional wallets |

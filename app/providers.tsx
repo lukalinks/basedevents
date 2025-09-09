@@ -20,7 +20,7 @@ export function Providers(props: { children: ReactNode }) {
         appearance: {
           mode: "auto",
           theme: "mini-app-theme",
-          name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "BasedEvents",
+          name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "EventFI",
           logo: process.env.NEXT_PUBLIC_ICON_URL || "/logo.png",
         },
         walletConnect: {

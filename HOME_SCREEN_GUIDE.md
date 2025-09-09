@@ -1,8 +1,8 @@
-# 🏠 Home Screen Implementation Guide for BasedEvents
+# 🏠 Home Screen Implementation Guide for EventFI
 
 ## Overview
 
-The home screen is the main landing page of the BasedEvents Farcaster Mini App, designed to provide users with a comprehensive view of events, search capabilities, and quick access to key features. This guide explains how the home screen is structured and implemented.
+The home screen is the main landing page of the EventFI Farcaster Mini App, designed to provide users with a comprehensive view of events, search capabilities, and quick access to key features. This guide explains how the home screen is structured and implemented.
 
 ## 📱 App Structure
 
@@ -34,7 +34,7 @@ export default function App() {
 <div className="bg-[var(--app-card-bg)] border-b border-[var(--app-card-border)] p-4">
   <div className="flex justify-between items-center">
     <h1 className="text-xl font-bold text-[var(--app-foreground)]">
-      BasedEvents
+      EventFI
     </h1>
     {/* Farcaster integration buttons */}
   </div>
@@ -42,7 +42,7 @@ export default function App() {
 ```
 
 **Features**:
-- App branding ("BasedEvents")
+- App branding ("EventFI")
 - Farcaster Mini App integration
 - Add to Farcaster button
 - Responsive design
@@ -500,8 +500,8 @@ export async function POST(request: Request) {
       // Send welcome notification
       await sendFrameNotification({
         fid: body.fid,
-        title: `Welcome to BasedEvents`,
-        body: `Thank you for adding BasedEvents`,
+        title: `Welcome to EventFI`,
+        body: `Thank you for adding EventFI`,
         notificationDetails: body.notificationDetails,
       });
       break;
@@ -526,7 +526,7 @@ useEffect(() => {
 
 ## 🎯 Conclusion
 
-The home screen implementation provides a comprehensive, user-friendly interface for the BasedEvents app. It combines powerful search and filtering capabilities with seamless Farcaster integration, creating an engaging experience for users to discover and interact with events.
+The home screen implementation provides a comprehensive, user-friendly interface for the EventFI app. It combines powerful search and filtering capabilities with seamless Farcaster integration, creating an engaging experience for users to discover and interact with events.
 
 Key highlights:
 - **Rich Search**: Multi-field search with location and tag filtering

@@ -1,6 +1,6 @@
 # Token Gating Implementation Guide
 
-## 🔒 **Token Gating for BasedEvents**
+## 🔒 **Token Gating for EventFI**
 
 This comprehensive guide provides step-by-step instructions for implementing token gating functionality in your event management application, allowing event creators to restrict access based on token ownership.
 
@@ -1483,7 +1483,7 @@ const nftGatedEvent = {
 
 ---
 
-This comprehensive guide provides everything you need to implement token gating in your BasedEvents application. Start with Phase 1 for basic functionality, then expand with advanced features as needed. The modular approach allows you to implement features incrementally while maintaining a stable application.
+This comprehensive guide provides everything you need to implement token gating in your EventFI application. Start with Phase 1 for basic functionality, then expand with advanced features as needed. The modular approach allows you to implement features incrementally while maintaining a stable application.
 
 <function_calls>
 <invoke name="todo_write">

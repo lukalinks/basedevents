@@ -1,8 +1,8 @@
-# 🎯 **BasedEvents - Complete App Implementation Guide**
+# 🎯 **EventFI - Complete App Implementation Guide**
 
 ## 📋 **Project Overview**
 
-**BasedEvents** is a modern, fully-featured event management Mini App built for the Base blockchain ecosystem. It combines traditional event management with cutting-edge Web3 functionality, offering free events, paid events, token-gated events, and NFT tickets.
+**EventFI** is a modern, fully-featured event management Mini App built for the Base blockchain ecosystem. It combines traditional event management with cutting-edge Web3 functionality, offering free events, paid events, token-gated events, and NFT tickets.
 
 ---
 
@@ -420,7 +420,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # OnchainKit Configuration  
 NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_onchainkit_api_key
-NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=BasedEvents
+NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=EventFI
 
 # Optional Contract Addresses
 NEXT_PUBLIC_ONCHAIN_REG_LOGGER=0x...  # Free event logging
@@ -498,7 +498,7 @@ psql -h <host> -d <database> -f migrations/011_add_token_gating.sql
 
 ## 🎯 **Summary**
 
-**BasedEvents** represents a complete, production-ready event management platform that seamlessly blends Web2 usability with Web3 functionality. The implementation covers:
+**EventFI** represents a complete, production-ready event management platform that seamlessly blends Web2 usability with Web3 functionality. The implementation covers:
 
 ### **✅ Completed Features**
 - ✅ **Full Event Management**: CRUD operations with advanced features

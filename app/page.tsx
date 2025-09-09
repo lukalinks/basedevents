@@ -1082,18 +1082,37 @@ export default function App() {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const url = `${baseUrl}/api/events/${eventId}/registrations?address=${encodeURIComponent(address || '')}`;
       
-      // If running inside Farcaster Mini app, prefer opening the URL
-      if (context?.client?.added) {
-        console.log('📱 Farcaster Mini app detected, opening download URL:', url);
-        openUrl(url);
-        console.log('✅ Download URL opened successfully in Farcaster');
-        return;
+      console.log('🔍 Download context check:', {
+        isFrameReady,
+        context: context?.client,
+        userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
+        url
+      });
+      
+      // Check if we're in Farcaster environment (multiple detection methods)
+      const isFarcaster = context?.client?.added || 
+                         (typeof window !== 'undefined' && window.navigator.userAgent.includes('Farcaster')) ||
+                         isFrameReady;
+      
+      if (isFarcaster) {
+        console.log('📱 Farcaster environment detected, opening download URL:', url);
+        try {
+          await openUrl(url);
+          console.log('✅ Download URL opened successfully in Farcaster');
+          return;
+        } catch (farcasterError) {
+          console.warn('⚠️ Farcaster openUrl failed, falling back to browser download:', farcasterError);
+          // Fall through to browser download
+        }
       }
 
-      // Fallback: browser download
+      // Browser download fallback
       console.log('🌐 Browser environment detected, downloading directly');
       const res = await fetch(url, {
-        headers: { 'x-user-address': address || '' }
+        headers: { 
+          'x-user-address': address || '',
+          'Content-Type': 'application/json'
+        }
       });
       
       if (res.status === 404) {
@@ -1102,7 +1121,7 @@ export default function App() {
       }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to download CSV');
+        throw new Error(data.error || `HTTP ${res.status}: Failed to download CSV`);
       }
       
       const blob = await res.blob();
@@ -1122,8 +1141,10 @@ export default function App() {
       // Show user-friendly error message
       let errorMessage = 'Failed to download registrations. Please try again.';
       if (error instanceof Error) {
-        if (error.message.includes('Farcaster')) {
-          errorMessage = 'Unable to download in Farcaster. Please try again or use a browser.';
+        if (error.message.includes('Farcaster') || error.message.includes('openUrl')) {
+          errorMessage = 'Unable to download in Farcaster. The download link will open in a new tab.';
+        } else if (error.message.includes('HTTP')) {
+          errorMessage = `Server error: ${error.message}`;
         } else {
           errorMessage = error.message;
         }

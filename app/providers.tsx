@@ -26,6 +26,9 @@ export function Providers(props: { children: ReactNode }) {
             name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "EventFI",
             logo: process.env.NEXT_PUBLIC_ICON_URL || "/logo.png",
           },
+          features: {
+            analytics: false, // Disable analytics for better mobile performance
+          },
         }}
       >
         {props.children}

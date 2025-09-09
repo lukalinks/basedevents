@@ -205,9 +205,9 @@ function ProfilePage({
   if (!address) return <div className="p-6 text-center text-[var(--app-foreground-muted)]">Connect your wallet to view your profile.</div>;
   
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
       {/* Enhanced Profile Card */}
-      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 xl:p-10 shadow-xl border border-[var(--app-glass-border)]">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
           <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] bg-clip-text text-transparent">
             Profile
@@ -230,7 +230,7 @@ function ProfilePage({
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row lg:flex-row items-start gap-6 lg:gap-8">
+            <div className="flex flex-col sm:flex-row lg:flex-row items-start gap-6 lg:gap-8 xl:gap-12">
               {/* Avatar Section */}
               <div className="flex-shrink-0 mx-auto sm:mx-0">
               {userDisplayInfo?.avatar ? (
@@ -351,7 +351,7 @@ function ProfilePage({
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -542,9 +542,9 @@ function HostsPage({ events }: { events: Event[] }) {
   };
 
   return (
-    <div className="space-y-6 lg:space-y-8 animate-fade-in">
+    <div className="space-y-6 lg:space-y-8 animate-fade-in max-w-7xl mx-auto">
       {/* Enhanced Header Section */}
-      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
+      <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 xl:p-10 shadow-xl border border-[var(--app-glass-border)]">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
           <div className="w-12 h-12 bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-token-gate)] rounded-xl flex items-center justify-center shadow-lg mx-auto sm:mx-0">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,7 +561,7 @@ function HostsPage({ events }: { events: Event[] }) {
       </div>
 
       {/* Hosts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
         {hostStats.length === 0 && (
           <div className="text-center py-16 text-[var(--app-foreground-muted)] col-span-full">
             <div className="w-16 h-16 bg-[var(--app-gray)] rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -1323,7 +1323,7 @@ export default function App() {
       </header>
 
       {/* Enhanced Main content */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 max-w-7xl mx-auto w-full overflow-x-hidden lg:ml-64 xl:ml-72">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-6 pt-4 sm:pt-6 max-w-none lg:max-w-7xl mx-auto w-full overflow-x-hidden lg:ml-64 xl:ml-72">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
@@ -1391,30 +1391,30 @@ export default function App() {
           <>
             {/* Enhanced Welcome Section */}
             <div className="mb-6 lg:mb-8">
-              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 shadow-xl border border-[var(--app-glass-border)]">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="bg-gradient-to-br from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm rounded-2xl p-6 lg:p-8 xl:p-10 shadow-xl border border-[var(--app-glass-border)]">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
                   <div className="flex-1">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--app-foreground)] mb-2">
+                    <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-[var(--app-foreground)] mb-3 lg:mb-4">
                       Welcome to EventFI
                     </h1>
-                    <p className="text-base lg:text-lg text-[var(--app-foreground-muted)] mb-4 lg:mb-6">
+                    <p className="text-base lg:text-lg xl:text-xl text-[var(--app-foreground-muted)] mb-6 lg:mb-8 max-w-3xl">
                       Discover and create amazing events on Base. Connect with your community through blockchain-powered event management.
                     </p>
-                    <div className="flex flex-wrap gap-3">
-                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full text-sm">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex flex-wrap gap-3 lg:gap-4">
+                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="font-medium text-blue-800">NFT Tickets</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         <span className="font-medium text-gray-800">Token Gating</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full text-sm">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full text-sm lg:text-base">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                         </svg>
                         <span className="font-medium text-blue-800">USDC Payments</span>
@@ -1426,9 +1426,12 @@ export default function App() {
             </div>
 
             {/* Events Section */}
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--app-foreground)]">Discover Events</h2>
+            <div className="space-y-6 lg:space-y-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:gap-6">
+                <div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-[var(--app-foreground)] mb-2">Discover Events</h2>
+                  <p className="text-sm lg:text-base text-[var(--app-foreground-muted)]">Find and join amazing events in your community</p>
+                </div>
                 {address ? (
                   <Button
                     variant="primary"
@@ -1437,19 +1440,19 @@ export default function App() {
                       setActiveTab("create");
                       setEditingEvent(null);
                     }}
-                    className="px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+                    className="px-6 lg:px-8 py-3 lg:py-4 text-sm lg:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
                   >
                     <span className="hidden sm:inline">Create Event</span>
                     <span className="sm:hidden">Create</span>
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-3 py-1.5 w-full sm:w-auto justify-center sm:justify-start">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-4 py-2 w-full sm:w-auto justify-center sm:justify-start">
                     <div className="w-5 h-5 bg-blue-100 rounded-lg flex items-center justify-center">
                       <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
-                    <span className="text-blue-800 font-medium text-sm">Connect Wallet</span>
+                    <span className="text-blue-800 font-medium text-sm lg:text-base">Connect Wallet</span>
                   </div>
                 )}
               </div>
@@ -1612,33 +1615,49 @@ export default function App() {
       </nav>
 
       {/* Desktop Sidebar Navigation */}
-      <aside className="hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72 bg-gradient-to-b from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border-r border-[var(--app-card-border)] shadow-xl z-10">
-        <div className="p-6">
-          <h3 className="text-sm font-semibold text-[var(--app-foreground-muted)] uppercase tracking-wider mb-4">Navigation</h3>
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left group ${
-                  activeTab === item.key 
-                    ? "bg-[var(--app-accent-light)] text-[var(--app-accent)] shadow-md" 
-                    : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)]"
-                }`}
-                onClick={() => {
-                  setActiveTab(item.key);
-                  if (item.key === "create") setEditingEvent(null);
-                }}
-              >
-                <div className={`${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
-                  {item.icon}
-                </div>
-                <span className="font-medium">{item.label}</span>
-                {activeTab === item.key && (
-                  <div className="ml-auto w-2 h-2 bg-[var(--app-accent)] rounded-full animate-pulse"></div>
-                )}
-              </button>
-            ))}
-          </nav>
+      <aside className="hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72 bg-gradient-to-b from-[var(--app-card-bg)] to-[var(--app-glass-bg)] backdrop-blur-sm border-r border-[var(--app-card-border)] shadow-xl z-10 overflow-y-auto">
+        <div className="p-6 h-full flex flex-col">
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-[var(--app-foreground-muted)] uppercase tracking-wider mb-4">Navigation</h3>
+            <nav className="space-y-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left group ${
+                    activeTab === item.key 
+                      ? "bg-[var(--app-accent-light)] text-[var(--app-accent)] shadow-md" 
+                      : "text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] hover:bg-[var(--app-gray)]"
+                  }`}
+                  onClick={() => {
+                    setActiveTab(item.key);
+                    if (item.key === "create") setEditingEvent(null);
+                  }}
+                >
+                  <div className={`${activeTab === item.key ? 'scale-110' : 'group-hover:scale-105'} transition-transform duration-300`}>
+                    {item.icon}
+                  </div>
+                  <span className="font-medium">{item.label}</span>
+                  {activeTab === item.key && (
+                    <div className="ml-auto w-2 h-2 bg-[var(--app-accent)] rounded-full animate-pulse"></div>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          {/* Desktop Footer Info */}
+          <div className="mt-auto pt-6 border-t border-[var(--app-card-border)]">
+            <div className="text-xs text-[var(--app-foreground-muted)] space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Connected to Base</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>EventFI Platform</span>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
     </div>

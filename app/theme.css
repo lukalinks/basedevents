@@ -202,6 +202,23 @@ body {
   .space-responsive {
     @apply space-y-4 sm:space-y-6 lg:space-y-8;
   }
+  
+  /* Desktop-specific improvements */
+  .desktop-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .desktop-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8;
+  }
+  
+  .desktop-sidebar {
+    @apply hidden lg:block fixed left-0 top-20 bottom-0 w-64 xl:w-72;
+  }
+  
+  .desktop-main {
+    @apply lg:ml-64 xl:ml-72;
+  }
 }
 
 .animate-fade-in {
@@ -294,4 +311,38 @@ body {
   border: 2px solid transparent;
   background: linear-gradient(var(--app-background), var(--app-background)) padding-box,
               linear-gradient(45deg, var(--app-accent), var(--app-token-gate), var(--app-payment)) border-box;
+}
+
+/* Desktop Layout Improvements */
+@media (min-width: 1024px) {
+  .desktop-optimized {
+    @apply max-w-none lg:max-w-7xl mx-auto;
+  }
+  
+  .desktop-spacing {
+    @apply space-y-8 lg:space-y-12;
+  }
+  
+  .desktop-padding {
+    @apply p-8 lg:p-10 xl:p-12;
+  }
+  
+  .desktop-text {
+    @apply text-lg lg:text-xl xl:text-2xl;
+  }
+  
+  .desktop-heading {
+    @apply text-3xl lg:text-4xl xl:text-5xl;
+  }
+}
+
+/* Large Desktop Optimizations */
+@media (min-width: 1536px) {
+  .desktop-xl-grid {
+    @apply grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6;
+  }
+  
+  .desktop-xl-spacing {
+    @apply gap-8 lg:gap-10 xl:gap-12;
+  }
 }

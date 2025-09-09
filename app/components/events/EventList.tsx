@@ -42,6 +42,9 @@ export function EnhancedEventList({
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [showFilters, setShowFilters] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: 'cancel' | 'delete';
@@ -78,7 +81,93 @@ export function EnhancedEventList({
     return Array.from(locations).sort();
   }, [events]);
 
+  // Get search suggestions
+  const searchSuggestions = useMemo(() => {
+    if (!localSearchQuery || localSearchQuery.length < 2) return [];
+    
+    const suggestions = new Set<string>();
+    
+    // Add event titles that match
+    events.forEach(event => {
+      if (event.title.toLowerCase().includes(localSearchQuery.toLowerCase())) {
+        suggestions.add(event.title);
+      }
+    });
+    
+    // Add locations that match
+    allLocations.forEach(location => {
+      if (location.toLowerCase().includes(localSearchQuery.toLowerCase())) {
+        suggestions.add(location);
+      }
+    });
+    
+    // Add tags that match
+    allTags.forEach(tag => {
+      if (tag.toLowerCase().includes(localSearchQuery.toLowerCase())) {
+        suggestions.add(`#${tag}`);
+      }
+    });
+    
+    return Array.from(suggestions).slice(0, 5);
+  }, [localSearchQuery, events, allLocations, allTags]);
+
+  // Get popular searches
+  const popularSearches = useMemo(() => {
+    const popular = ['tech', 'networking', 'workshop', 'conference', 'meetup'];
+    return popular.filter(term => 
+      !localSearchQuery || term.toLowerCase().includes(localSearchQuery.toLowerCase())
+    ).slice(0, 3);
+  }, [localSearchQuery]);
+
   const openUrl = useOpenUrl();
+
+  // Search handling functions
+  const handleSearch = async (query: string, tags: string[] = []) => {
+    setIsSearching(true);
+    setShowSuggestions(false);
+    
+    // Add to search history
+    if (query && !searchHistory.includes(query)) {
+      setSearchHistory(prev => [query, ...prev.slice(0, 4)]);
+    }
+    
+    if (onSearchAction) {
+      await onSearchAction(query, tags);
+    }
+    
+    setIsSearching(false);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setLocalSearchQuery(suggestion);
+    setShowSuggestions(false);
+    handleSearch(suggestion, selectedTags || []);
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSearchQuery(value);
+    setShowSuggestions(value.length >= 2);
+    
+    // Debounced search
+    const timeoutId = setTimeout(() => {
+      if (value.length >= 2 || value.length === 0) {
+        handleSearch(value, selectedTags || []);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  };
+
+  const clearSearch = () => {
+    setLocalSearchQuery("");
+    setSelectedLocation("");
+    setSelectedTag("");
+    setShowSuggestions(false);
+    if (onSearchAction) {
+      onSearchAction("", []);
+    }
+  };
 
   // Helper functions
   const getEventStatus = (event: Event) => {
@@ -183,57 +272,126 @@ export function EnhancedEventList({
     <div className="space-y-4">
       {showSearch && (
         <div className="space-y-4">
-          {/* Search Bar */}
+          {/* Enhanced Search Bar */}
           <div className="relative">
-            <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search events by title, description, or location..."
-              value={localSearchQuery}
-              onChange={e => {
-                setLocalSearchQuery(e.target.value);
-                if (onSearchAction) {
-                  onSearchAction(e.target.value, selectedTags || []);
-                }
-              }}
-              className="w-full pl-10 pr-4 py-3 sm:py-4 lg:py-5 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all text-sm sm:text-base lg:text-lg shadow-sm focus:shadow-md"
-            />
-          </div>
-          
-          {/* Filter Toggle Button */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-colors bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-lg hover:border-[var(--app-accent)]/30"
-              >
-                <Icon name="search" size="sm" />
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </button>
-              {!showFilters && (selectedLocation || selectedTag || localSearchQuery) && (
+            <div className="relative">
+              <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
+                  <div className="w-4 h-4 border-2 border-[var(--app-accent)] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Search events by title, description, or location..."
+                value={localSearchQuery}
+                onChange={handleSearchInputChange}
+                onFocus={() => setShowSuggestions(localSearchQuery.length >= 2)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="w-full pl-10 pr-12 py-3 sm:py-4 lg:py-5 border-2 rounded-lg bg-[var(--app-card-bg)] border-[var(--app-card-border)] text-[var(--app-foreground)] placeholder-[var(--app-foreground-muted)] focus:ring-2 focus:ring-[var(--app-accent)] focus:border-[var(--app-accent)] transition-all text-sm sm:text-base lg:text-lg shadow-sm focus:shadow-md"
+              />
+              {localSearchQuery && (
                 <button
-                  onClick={() => setShowFilters(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-accent)] hover:text-[var(--app-accent)]/80 transition-colors bg-[var(--app-accent)]/10 border border-[var(--app-accent)]/20 rounded-lg hover:bg-[var(--app-accent)]/20"
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-colors z-10"
                 >
-                  <Icon name="search" size="sm" />
-                  Show Results ({filteredEvents.length})
+                  <Icon name="x" size="sm" />
                 </button>
               )}
             </div>
-            {(selectedLocation || selectedTag || localSearchQuery) && (
+            
+            {/* Search Suggestions Dropdown */}
+            {showSuggestions && (searchSuggestions.length > 0 || popularSearches.length > 0) && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                {searchSuggestions.length > 0 && (
+                  <div className="p-2">
+                    <div className="text-xs font-medium text-[var(--app-foreground-muted)] mb-2 px-2">Suggestions</div>
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full text-left px-3 py-2 text-sm text-[var(--app-foreground)] hover:bg-[var(--app-accent)]/10 rounded-md transition-colors flex items-center gap-2"
+                      >
+                        <Icon name="search" size="sm" className="text-[var(--app-foreground-muted)]" />
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {searchHistory.length > 0 && (
+                  <div className="p-2 border-t border-[var(--app-card-border)]">
+                    <div className="text-xs font-medium text-[var(--app-foreground-muted)] mb-2 px-2">Recent Searches</div>
+                    {searchHistory.slice(0, 3).map((term, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(term)}
+                        className="w-full text-left px-3 py-2 text-sm text-[var(--app-foreground)] hover:bg-[var(--app-accent)]/10 rounded-md transition-colors flex items-center gap-2"
+                      >
+                        <Icon name="clock" size="sm" className="text-[var(--app-foreground-muted)]" />
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {popularSearches.length > 0 && (
+                  <div className="p-2 border-t border-[var(--app-card-border)]">
+                    <div className="text-xs font-medium text-[var(--app-foreground-muted)] mb-2 px-2">Popular</div>
+                    {popularSearches.map((term, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(term)}
+                        className="w-full text-left px-3 py-2 text-sm text-[var(--app-foreground)] hover:bg-[var(--app-accent)]/10 rounded-md transition-colors flex items-center gap-2"
+                      >
+                        <Icon name="trending-up" size="sm" className="text-[var(--app-foreground-muted)]" />
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Enhanced Filter Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
-                onClick={() => {
-                  setLocalSearchQuery("");
-                  setSelectedLocation("");
-                  setSelectedTag("");
-                  if (onSearchAction) {
-                    onSearchAction("", []);
-                  }
-                }}
-                className="text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)] transition-all bg-[var(--app-card-bg)] border border-[var(--app-card-border)] rounded-lg hover:border-[var(--app-accent)]/30 hover:shadow-sm"
               >
-                Clear All
+                <Icon name="filter" size="sm" />
+                {showFilters ? "Hide Filters" : "Show Filters"}
+                {(selectedLocation || selectedTag) && (
+                  <span className="w-2 h-2 bg-[var(--app-accent)] rounded-full"></span>
+                )}
               </button>
+              
+              {!showFilters && (selectedLocation || selectedTag || localSearchQuery) && (
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--app-accent)] hover:text-[var(--app-accent)]/80 transition-all bg-[var(--app-accent)]/10 border border-[var(--app-accent)]/20 rounded-lg hover:bg-[var(--app-accent)]/20 hover:shadow-sm"
+                >
+                  <Icon name="eye" size="sm" />
+                  View Results ({filteredEvents.length})
+                </button>
+              )}
+            </div>
+            
+            {(selectedLocation || selectedTag || localSearchQuery) && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--app-foreground-muted)]">
+                  {filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''}
+                </span>
+                <button
+                  onClick={clearSearch}
+                  className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                >
+                  <Icon name="x" size="sm" />
+                  Clear All
+                </button>
+              </div>
             )}
           </div>
           
@@ -253,24 +411,26 @@ export function EnhancedEventList({
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setSelectedLocation("")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                           selectedLocation === "" 
                             ? "bg-blue-600 text-white shadow-md" 
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
                         }`}
                       >
+                        <Icon name="globe" size="sm" />
                         All Locations
                       </button>
                       {allLocations.map(location => (
                         <button
                           key={location}
                           onClick={() => setSelectedLocation(location)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                             selectedLocation === location 
                               ? "bg-blue-600 text-white shadow-md" 
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
                           }`}
                         >
+                          <Icon name="location" size="sm" />
                           {location}
                         </button>
                       ))}
@@ -290,25 +450,27 @@ export function EnhancedEventList({
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setSelectedTag("")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                           selectedTag === "" 
                             ? "bg-gray-600 text-white shadow-md" 
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
                         }`}
                       >
+                        <Icon name="tag" size="sm" />
                         All Tags
                       </button>
                       {allTags.map(tag => (
                         <button
                           key={tag}
                           onClick={() => setSelectedTag(tag)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                             selectedTag === tag 
                               ? "bg-gray-600 text-white shadow-md" 
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
                           }`}
                         >
-                          {tag}
+                          <Icon name="star" size="sm" />
+                          #{tag}
                         </button>
                       ))}
                     </div>
@@ -401,11 +563,53 @@ export function EnhancedEventList({
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
-        {filteredEvents.length === 0 && (
-          <div className="col-span-full text-center py-8 text-[var(--app-foreground-muted)]">
-            <Icon name="calendar" size="lg" className="mx-auto mb-2 opacity-50" />
-            <p>No events found</p>
-            {searchQuery && <p className="text-sm">Try adjusting your search</p>}
+        {/* Search Results Feedback */}
+        {(localSearchQuery || selectedLocation || selectedTag) && (
+          <div className="col-span-full bg-gradient-to-r from-[var(--app-accent)]/5 to-transparent border border-[var(--app-accent)]/20 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="search" size="sm" className="text-[var(--app-accent)]" />
+                <span className="text-sm font-medium text-[var(--app-foreground)]">
+                  {filteredEvents.length === 0 ? 'No events found' : `${filteredEvents.length} event${filteredEvents.length !== 1 ? 's' : ''} found`}
+                </span>
+              </div>
+              {filteredEvents.length === 0 && (
+                <button
+                  onClick={clearSearch}
+                  className="text-xs text-[var(--app-accent)] hover:text-[var(--app-accent)]/80 font-medium px-2 py-1 rounded hover:bg-[var(--app-accent)]/10 transition-colors"
+                >
+                  Clear search
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {filteredEvents.length === 0 && !localSearchQuery && !selectedLocation && !selectedTag && (
+          <div className="col-span-full text-center py-12">
+            <div className="w-16 h-16 bg-[var(--app-accent)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Icon name="calendar" size="lg" className="text-[var(--app-accent)]" />
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--app-foreground)] mb-2">No events yet</h3>
+            <p className="text-[var(--app-foreground-muted)] mb-4">Be the first to create an event!</p>
+          </div>
+        )}
+
+        {/* No Results State */}
+        {filteredEvents.length === 0 && (localSearchQuery || selectedLocation || selectedTag) && (
+          <div className="col-span-full text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Icon name="search" size="lg" className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--app-foreground)] mb-2">No events match your search</h3>
+            <p className="text-[var(--app-foreground-muted)] mb-4">Try adjusting your filters or search terms</p>
+            <button
+              onClick={clearSearch}
+              className="px-4 py-2 bg-[var(--app-accent)] text-white rounded-lg hover:bg-[var(--app-accent)]/90 transition-colors"
+            >
+              Clear all filters
+            </button>
           </div>
         )}
         

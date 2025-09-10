@@ -47,12 +47,22 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
 
   const generateEventLink = () => {
     const eventUrl = getEventUrl();
+    
+    // Ensure image URL is properly formatted for sharing
+    let imageUrl = event.imageUrl;
+    if (imageUrl) {
+      if (!imageUrl.startsWith('http')) {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '';
+        imageUrl = imageUrl.startsWith('/') ? `${baseUrl}${imageUrl}` : `${baseUrl}/${imageUrl}`;
+      }
+    }
+    
     const eventData = {
       title: event.title,
       date: formatDate(event.date, event.time, event.endTime),
       location: event.location,
       description: event.description,
-      imageUrl: event.imageUrl,
+      imageUrl: imageUrl,
       url: eventUrl,
       // Add metadata for better link preview
       metadata: {
@@ -104,15 +114,15 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
       
       // Prepare embeds - include event image if available
       const embeds: string[] = [];
-      if (event.imageUrl) {
-        embeds.push(event.imageUrl);
+      if (eventData.imageUrl) {
+        embeds.push(eventData.imageUrl);
       }
       // Add the event URL as an embed for better link preview
       embeds.push(eventUrl);
       
       await composeCast({
         text: shareText,
-        embeds: embeds as [string, ...string[]],
+        embeds: embeds.length > 0 ? embeds as [string] | [string, string] : undefined,
       });
       
       console.log('✅ Event shared on Farcaster successfully');
@@ -198,7 +208,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
             copySuccess ? 'text-green-600 bg-green-50' : ''
           }`}
         >
-          <Icon name="link" size="sm" />
+          <Icon name="share" size="sm" />
           <span className="hidden xs:inline">
             {copySuccess ? 'Copied!' : 'Copy Link'}
           </span>
@@ -249,7 +259,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
             copySuccess ? 'bg-green-50 text-green-700 border-green-200' : ''
           }`}
         >
-          <Icon name="link" size="sm" />
+          <Icon name="share" size="sm" />
           <span className="font-medium">
             {copySuccess ? 'Copied!' : 'Copy Link'}
           </span>

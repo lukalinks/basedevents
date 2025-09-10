@@ -13,28 +13,73 @@ export async function generateMetadata({ params }): Promise<Metadata> {
   }
   const data = await res.json();
   const event = data.event;
-  // Ensure image is a full URL
+  
+  // Ensure image is a full URL with proper fallback
   let imageUrl = event.imageUrl;
+  console.log('Original event.imageUrl:', event.imageUrl);
+  
   if (imageUrl) {
-    if (!imageUrl.startsWith('http')) {
+    // Handle different image URL formats
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      // Already a full URL
+      imageUrl = imageUrl;
+    } else if (imageUrl.startsWith('/')) {
+      // Relative URL starting with /
       imageUrl = `${process.env.NEXT_PUBLIC_URL}${imageUrl}`;
+    } else {
+      // Relative URL without /
+      imageUrl = `${process.env.NEXT_PUBLIC_URL}/${imageUrl}`;
     }
   } else {
-    imageUrl = process.env.NEXT_PUBLIC_APP_OG_IMAGE;
+    // Fallback to default OG image
+    imageUrl = process.env.NEXT_PUBLIC_APP_OG_IMAGE || `${process.env.NEXT_PUBLIC_URL}/icon.png`;
   }
+  
+  console.log('Final imageUrl for metadata:', imageUrl);
+
+  // Create a more comprehensive description
+  const eventDate = new Date(`${event.date}T${event.time}`);
+  const formattedDate = eventDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  const description = `${event.description || 'Join us for an amazing event!'} 📅 ${formattedDate} at ${event.location}`;
+
   return {
     title: event.title,
-    description: event.description,
+    description: description,
     openGraph: {
       title: event.title,
-      description: event.description,
-      images: [imageUrl],
+      description: description,
+      type: 'website',
+      url: `${process.env.NEXT_PUBLIC_URL}/events/${event.id}`,
+      siteName: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || 'BasedEvents',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: event.title,
+        }
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: event.title,
-      description: event.description,
+      description: description,
       images: [imageUrl],
+      creator: '@basedevents',
+      site: '@basedevents',
+    },
+    other: {
+      'og:image:width': '1200',
+      'og:image:height': '630',
+      'og:image:type': 'image/jpeg',
     },
   };
 }
@@ -47,6 +92,7 @@ export default async function EventPage({ params }) {
   }
   const data = await res.json();
   const event: Event = data.event;
+  
   // Pass event to client component
   return <ClientEventPage event={event} />;
 }

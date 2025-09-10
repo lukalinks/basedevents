@@ -14,14 +14,18 @@ export async function generateMetadata({ params }): Promise<Metadata> {
   const data = await res.json();
   const event = data.event;
   
-  // Ensure image is a full URL with proper fallback
+  // Ensure image is a proper URL for social sharing
   let imageUrl = event.imageUrl;
   console.log('Original event.imageUrl:', event.imageUrl);
   
   if (imageUrl) {
-    // Handle different image URL formats
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      // Already a full URL
+    // Check if it's a base64 data URL (which won't work for social sharing)
+    if (imageUrl.startsWith('data:image/')) {
+      console.log('Base64 image detected, using dynamic OG image generation');
+      // Use dynamic OG image generation for base64 images
+      imageUrl = `${process.env.NEXT_PUBLIC_URL}/api/og/event/${event.id}`;
+    } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      // Already a full URL - verify it's accessible
       imageUrl = imageUrl;
     } else if (imageUrl.startsWith('/')) {
       // Relative URL starting with /
@@ -31,8 +35,9 @@ export async function generateMetadata({ params }): Promise<Metadata> {
       imageUrl = `${process.env.NEXT_PUBLIC_URL}/${imageUrl}`;
     }
   } else {
-    // Fallback to default OG image
-    imageUrl = process.env.NEXT_PUBLIC_APP_OG_IMAGE || `${process.env.NEXT_PUBLIC_URL}/icon.png`;
+    // Fallback to dynamic OG image generation
+    console.log('No image found, using dynamic OG image generation');
+    imageUrl = `${process.env.NEXT_PUBLIC_URL}/api/og/event/${event.id}`;
   }
   
   console.log('Final imageUrl for metadata:', imageUrl);

@@ -51,10 +51,18 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
     // Ensure image URL is properly formatted for sharing
     let imageUrl = event.imageUrl;
     if (imageUrl) {
-      if (!imageUrl.startsWith('http')) {
+      if (imageUrl.startsWith('data:image/')) {
+        // Base64 images don't work for social sharing, use dynamic OG image
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '';
+        imageUrl = `${baseUrl}/api/og/event/${event.id}`;
+      } else if (!imageUrl.startsWith('http')) {
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '';
         imageUrl = imageUrl.startsWith('/') ? `${baseUrl}${imageUrl}` : `${baseUrl}/${imageUrl}`;
       }
+    } else {
+      // No image, use dynamic OG image
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '';
+      imageUrl = `${baseUrl}/api/og/event/${event.id}`;
     }
     
     const eventData = {

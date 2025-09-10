@@ -259,7 +259,8 @@ export default function ClientEventPage({ event }: { event: Event }) {
                 variant="outline"
                 size="lg"
                 onClick={() => {
-                  const eventUrl = `${window.location.origin}/events/${event.id}`;
+                  const { getEventUrl } = require('@/lib/events');
+                  const eventUrl = getEventUrl(event);
                   const shareText = `Check out this event: ${event.title} on ${formatDate(event.date, event.time)} at ${event.location}`;
                   if (navigator.share) {
                     navigator.share({ title: event.title, text: shareText, url: eventUrl });

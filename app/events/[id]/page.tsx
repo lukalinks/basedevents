@@ -62,7 +62,7 @@ export async function generateMetadata({ params }): Promise<Metadata> {
       title: event.title,
       description: description,
       type: 'website',
-      url: `${process.env.NEXT_PUBLIC_URL}/events/${event.id}`,
+      url: `${process.env.NEXT_PUBLIC_URL}/events/${params.id}`,
       siteName: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || 'BasedEvents',
       images: [
         {

@@ -294,7 +294,8 @@ export function EventDetailsPage({
                       variant="primary"
                       size="lg"
                       onClick={() => {
-                        const eventUrl = `${window.location.origin}/events/${event.id}`;
+                        const { getEventUrl } = require('@/lib/events');
+                        const eventUrl = getEventUrl(event);
                         const eventDate = new Date(`${event.date}T${event.time}`);
                         const formattedDate = eventDate.toLocaleDateString('en-US', {
                           weekday: 'short',

@@ -40,9 +40,9 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
   };
 
   const getEventUrl = () => {
-    // Construct the full event URL with proper routing
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${baseUrl}/events/${event.id}`;
+    // Use the new slug-based URL generation
+    const { getEventUrl: generateEventUrl } = require('@/lib/events');
+    return generateEventUrl(event);
   };
 
   const generateEventLink = () => {

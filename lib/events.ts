@@ -826,6 +826,16 @@ export async function getEventComments(eventId: string): Promise<EventComment[]>
   return data.map(transformCommentFromDB)
 }
 
+/**
+ * Generate a URL-friendly slug for an event
+ */
+export function getEventUrl(event: Event, baseUrl?: string): string {
+  const { generateEventSlug } = require('./slugify');
+  const slug = generateEventSlug(event.title, event.id);
+  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '');
+  return `${base}/events/${slug}`;
+}
+
 // Transform database row to Event interface (handle snake_case to camelCase)
 function transformEventFromDB(dbEvent: any): Event {
   return {
@@ -882,19 +892,29 @@ function transformRegistrationFromDB(registration: any): EventRegistration {
   }
 }
 
-// Get event by ID with attendees information
-export async function getEventById(eventId: string): Promise<Event | null> {
+// Get event by ID or slug with attendees information
+export async function getEventById(eventIdOrSlug: string): Promise<Event | null> {
   try {
+    // Import slugify utilities
+    const { isUUID, extractEventIdFromSlug } = await import('./slugify');
+    
+    let actualEventId = eventIdOrSlug;
+    
+    // If it's not a UUID, treat it as a slug and extract the ID
+    if (!isUUID(eventIdOrSlug)) {
+      actualEventId = extractEventIdFromSlug(eventIdOrSlug);
+    }
+    
     // First get the event details
     const { data: event, error: eventError } = await supabase
       .from('events')
       .select('*')
-      .eq('id', eventId)
+      .eq('id', actualEventId)
       .single();
 
     if (eventError) {
       if (eventError.code === 'PGRST116') {
-        console.warn('Event not found:', eventId);
+        console.warn('Event not found:', eventIdOrSlug);
         return null;
       }
       console.error('Error fetching event by ID:', eventError);
@@ -907,7 +927,7 @@ export async function getEventById(eventId: string): Promise<Event | null> {
     const { data: registrations, error: regError } = await supabase
       .from('event_registrations')
       .select('user_address')
-      .eq('event_id', eventId)
+      .eq('event_id', actualEventId)
       .eq('status', 'confirmed');
 
     if (regError) {

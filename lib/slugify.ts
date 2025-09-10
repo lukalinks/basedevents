@@ -27,15 +27,16 @@ export function generateEventSlug(title: string, eventId: string): string {
 
 /**
  * Extract event ID from a slug
- * Assumes format: event-title-eventId
+ * Assumes format: event-title-eventId (first 8 chars of UUID)
+ * Returns the short ID that needs to be matched with database
  */
 export function extractEventIdFromSlug(slug: string): string {
   // Get the last part after the last hyphen (should be the short ID)
   const parts = slug.split('-');
   const shortId = parts[parts.length - 1];
   
-  // If it looks like a short ID (8 chars), return it
-  if (shortId.length === 8) {
+  // If it looks like a short ID (8 chars alphanumeric), return it
+  if (shortId.length === 8 && /^[0-9a-f]{8}$/i.test(shortId)) {
     return shortId;
   }
   

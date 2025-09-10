@@ -832,6 +832,7 @@ export async function getEventComments(eventId: string): Promise<EventComment[]>
 export function getEventUrl(event: Event, baseUrl?: string): string {
   const { generateEventSlug } = require('./slugify');
   const slug = generateEventSlug(event.title, event.id);
+  console.log('🔗 Generated slug for event:', { title: event.title, id: event.id, slug });
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '');
   return `${base}/events/${slug}`;
 }
@@ -895,22 +896,33 @@ function transformRegistrationFromDB(registration: any): EventRegistration {
 // Get event by ID or slug with attendees information
 export async function getEventById(eventIdOrSlug: string): Promise<Event | null> {
   try {
+    console.log('🔍 Looking up event:', eventIdOrSlug);
+    
     // Import slugify utilities
     const { isUUID, extractEventIdFromSlug } = await import('./slugify');
     
-    let actualEventId = eventIdOrSlug;
+    let query = supabase.from('events').select('*');
     
-    // If it's not a UUID, treat it as a slug and extract the ID
-    if (!isUUID(eventIdOrSlug)) {
-      actualEventId = extractEventIdFromSlug(eventIdOrSlug);
+    // If it's a full UUID, search by exact match
+    if (isUUID(eventIdOrSlug)) {
+      console.log('✅ Detected UUID, using exact match');
+      query = query.eq('id', eventIdOrSlug);
+    } else {
+      // It's a slug, extract the short ID and search for events starting with it
+      const shortId = extractEventIdFromSlug(eventIdOrSlug);
+      console.log('🔍 Extracted short ID from slug:', shortId);
+      
+      if (shortId.length === 8 && /^[0-9a-f]{8}$/i.test(shortId)) {
+        console.log('✅ Using LIKE query for short ID:', `${shortId}%`);
+        query = query.like('id', `${shortId}%`);
+      } else {
+        // Fallback: try exact match (backward compatibility)
+        console.log('⚠️ Using fallback exact match');
+        query = query.eq('id', eventIdOrSlug);
+      }
     }
     
-    // First get the event details
-    const { data: event, error: eventError } = await supabase
-      .from('events')
-      .select('*')
-      .eq('id', actualEventId)
-      .single();
+    const { data: event, error: eventError } = await query.single();
 
     if (eventError) {
       if (eventError.code === 'PGRST116') {
@@ -927,7 +939,7 @@ export async function getEventById(eventIdOrSlug: string): Promise<Event | null>
     const { data: registrations, error: regError } = await supabase
       .from('event_registrations')
       .select('user_address')
-      .eq('event_id', actualEventId)
+      .eq('event_id', event.id)
       .eq('status', 'confirmed');
 
     if (regError) {

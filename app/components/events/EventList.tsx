@@ -274,17 +274,17 @@ export function EnhancedEventList({
         <div className="space-y-4">
           {/* Enhanced Search Bar */}
           <div className="relative">
-            <div className="relative">
-              <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
+          <div className="relative">
+            <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--app-foreground-muted)] z-10 pointer-events-none" />
               {isSearching && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
                   <div className="w-4 h-4 border-2 border-[var(--app-accent)] border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
-              <input
-                type="text"
-                placeholder="Search events by title, description, or location..."
-                value={localSearchQuery}
+            <input
+              type="text"
+              placeholder="Search events by title, description, or location..."
+              value={localSearchQuery}
                 onChange={handleSearchInputChange}
                 onFocus={() => setShowSuggestions(localSearchQuery.length >= 2)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
@@ -384,13 +384,13 @@ export function EnhancedEventList({
                 <span className="text-xs text-[var(--app-foreground-muted)]">
                   {filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''}
                 </span>
-                <button
+              <button
                   onClick={clearSearch}
                   className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
                 >
                   <Icon name="x" size="sm" />
-                  Clear All
-                </button>
+                Clear All
+              </button>
               </div>
             )}
           </div>
@@ -573,7 +573,7 @@ export function EnhancedEventList({
                   {filteredEvents.length === 0 ? 'No events found' : `${filteredEvents.length} event${filteredEvents.length !== 1 ? 's' : ''} found`}
                 </span>
               </div>
-              {filteredEvents.length === 0 && (
+        {filteredEvents.length === 0 && (
                 <button
                   onClick={clearSearch}
                   className="text-xs text-[var(--app-accent)] hover:text-[var(--app-accent)]/80 font-medium px-2 py-1 rounded hover:bg-[var(--app-accent)]/10 transition-colors"

@@ -830,11 +830,17 @@ export async function getEventComments(eventId: string): Promise<EventComment[]>
  * Generate a URL-friendly slug for an event
  */
 export function getEventUrl(event: Event, baseUrl?: string): string {
-  const { generateEventSlug } = require('./slugify');
-  const slug = generateEventSlug(event.title, event.id);
-  console.log('🔗 Generated slug for event:', { title: event.title, id: event.id, slug });
+  // Temporary: Use UUID for now to ensure URLs work
+  // TODO: Re-enable slug generation once lookup is stable
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '');
-  return `${base}/events/${slug}`;
+  console.log('🔗 Using UUID for event URL:', { title: event.title, id: event.id });
+  return `${base}/events/${event.id}`;
+  
+  // Original slug code (disabled for now):
+  // const { generateEventSlug } = require('./slugify');
+  // const slug = generateEventSlug(event.title, event.id);
+  // console.log('🔗 Generated slug for event:', { title: event.title, id: event.id, slug });
+  // return `${base}/events/${slug}`;
 }
 
 // Transform database row to Event interface (handle snake_case to camelCase)
@@ -901,40 +907,67 @@ export async function getEventById(eventIdOrSlug: string): Promise<Event | null>
     // Import slugify utilities
     const { isUUID, extractEventIdFromSlug } = await import('./slugify');
     
-    let query = supabase.from('events').select('*');
-    
-    // If it's a full UUID, search by exact match
+    // Strategy 1: Try exact UUID match first
     if (isUUID(eventIdOrSlug)) {
       console.log('✅ Detected UUID, using exact match');
-      query = query.eq('id', eventIdOrSlug);
-    } else {
-      // It's a slug, extract the short ID and search for events starting with it
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventIdOrSlug)
+        .single();
+      
+      if (!eventError && event) {
+        console.log('✅ Found event by UUID');
+        return await processEventWithRegistrations(event);
+      }
+    }
+    
+    // Strategy 2: If it's a slug, try to find by partial ID match
+    if (!isUUID(eventIdOrSlug)) {
       const shortId = extractEventIdFromSlug(eventIdOrSlug);
       console.log('🔍 Extracted short ID from slug:', shortId);
       
       if (shortId.length === 8 && /^[0-9a-f]{8}$/i.test(shortId)) {
-        console.log('✅ Using LIKE query for short ID:', `${shortId}%`);
-        query = query.like('id', `${shortId}%`);
-      } else {
-        // Fallback: try exact match (backward compatibility)
-        console.log('⚠️ Using fallback exact match');
-        query = query.eq('id', eventIdOrSlug);
+        console.log('✅ Trying LIKE query for short ID:', `${shortId}%`);
+        
+        // Get all events and filter on the client side for more reliable matching
+        const { data: events, error: eventsError } = await supabase
+          .from('events')
+          .select('*');
+        
+        if (!eventsError && events) {
+          const matchingEvent = events.find(event => event.id.toLowerCase().startsWith(shortId.toLowerCase()));
+          if (matchingEvent) {
+            console.log('✅ Found event by short ID match:', matchingEvent.id);
+            return await processEventWithRegistrations(matchingEvent);
+          }
+        }
       }
     }
     
-    const { data: event, error: eventError } = await query.single();
-
+    // Strategy 3: Fallback - try exact match (for backward compatibility)
+    console.log('⚠️ Trying fallback exact match');
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventIdOrSlug)
+      .single();
+    
     if (eventError) {
-      if (eventError.code === 'PGRST116') {
-        console.warn('Event not found:', eventIdOrSlug);
-        return null;
-      }
-      console.error('Error fetching event by ID:', eventError);
-      throw eventError;
+      console.warn('❌ Event not found with any strategy:', eventIdOrSlug);
+      return null;
     }
+    
+    return await processEventWithRegistrations(event);
+  } catch (error) {
+    console.error('Error in getEventById:', error);
+    throw error;
+  }
+}
 
-    if (!event) return null;
-
+// Helper function to process event with registrations
+async function processEventWithRegistrations(event: any): Promise<Event> {
+  try {
     // Get confirmed registrations for the event
     const { data: registrations, error: regError } = await supabase
       .from('event_registrations')
@@ -953,8 +986,8 @@ export async function getEventById(eventIdOrSlug: string): Promise<Event | null>
 
     return transformEventFromDB(event);
   } catch (error) {
-    console.error('Error in getEventById:', error);
-    throw error;
+    console.error('Error processing event with registrations:', error);
+    return transformEventFromDB(event);
   }
 }
 

@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 interface ComposeCastButtonProps {
   event: Event;
-  variant?: 'default' | 'compact' | 'achievement' | 'frame';
+  variant?: 'default' | 'compact' | 'achievement';
   className?: string;
 }
 
@@ -72,40 +72,8 @@ export default function ComposeCastButton({
     }
   };
 
-  const handleComposeWithEmbed = async () => {
-    setIsComposing(true);
-    setComposeSuccess(false);
 
-    try {
-      const eventUrl = getEventUrl();
-      const shareText = `Check out this amazing Mini App! 🚀\n\n${event.title}\n📅 ${formatDate(event.date, event.time, event.endTime)}\n📍 ${event.location}\n\nJoin me at this incredible event!`;
-
-      // Prepare embeds - include event image if available and the event URL
-      const embeds: string[] = [];
-      if (event.imageUrl) {
-        embeds.push(event.imageUrl);
-      }
-      embeds.push(eventUrl);
-
-      await composeCast({
-        text: shareText,
-        embeds: embeds as [string, ...string[]],
-      });
-
-      console.log('✅ Cast with embed composed successfully');
-      setComposeSuccess(true);
-      
-      // Store analytics
-      storeEventShareAnalytics('frame');
-      
-    } catch (error) {
-      console.error('❌ Failed to compose cast with embed:', error);
-    } finally {
-      setIsComposing(false);
-    }
-  };
-
-  const storeEventShareAnalytics = (type: 'achievement' | 'frame') => {
+  const storeEventShareAnalytics = (type: 'achievement') => {
     try {
       const analyticsData = {
         eventId: event.id,
@@ -150,18 +118,6 @@ export default function ComposeCastButton({
     );
   }
 
-  if (variant === 'frame') {
-    return (
-      <Button
-        onClick={handleComposeWithEmbed}
-        disabled={isComposing}
-        className={`bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 ${className}`}
-      >
-        <Icon name="share" size="sm" />
-        {isComposing ? 'Sharing Frame...' : composeSuccess ? 'Frame Shared!' : 'Share Frame'}
-      </Button>
-    );
-  }
 
   if (variant === 'compact') {
     return (
@@ -179,18 +135,6 @@ export default function ComposeCastButton({
           </span>
         </Button>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleComposeWithEmbed}
-          disabled={isComposing}
-          className="text-blue-600 hover:text-blue-700"
-        >
-          <Icon name="share" size="sm" />
-          <span className="hidden sm:inline">
-            {isComposing ? 'Sharing...' : composeSuccess ? 'Shared!' : 'Frame'}
-          </span>
-        </Button>
       </div>
     );
   }
@@ -218,14 +162,6 @@ export default function ComposeCastButton({
           {isComposing ? 'Sharing Achievement...' : composeSuccess ? 'Achievement Shared!' : 'Share Achievement'}
         </Button>
         
-        <Button
-          onClick={handleComposeWithEmbed}
-          disabled={isComposing}
-          className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 flex items-center gap-2"
-        >
-          <Icon name="share" size="sm" />
-          {isComposing ? 'Sharing Frame...' : composeSuccess ? 'Frame Shared!' : 'Share Frame'}
-        </Button>
       </div>
       
       {/* Event Preview */}

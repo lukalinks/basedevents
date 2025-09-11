@@ -10,6 +10,11 @@ import { EventSharing } from './EventSharing';
 import { EventSupportComponent } from './EventSupport';
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { getUserDisplayInfo } from "@/lib/basenames";
+import { CheckInSettings } from '../poa/CheckInSettings';
+import { AttendeeCheckIn } from '../poa/AttendeeCheckIn';
+import { POADashboard } from '../poa/POADashboard';
+import { POAClaimCard } from '../poa/POAClaimCard';
+import { getEventRegistrations, getEventPOAForAttendee, EventRegistration, ProofOfAttendance } from '@/lib/events';
 
 // Event Details Page Component (non-modal version)
 export function EventDetailsPage({ 
@@ -46,6 +51,12 @@ export function EventDetailsPage({
     baseName?: string;
     address: string;
   } | null>(null);
+  
+  // POA-related state
+  const [activeTab, setActiveTab] = useState('attendees');
+  const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
+  const [userPOA, setUserPOA] = useState<ProofOfAttendance | null>(null);
+  const [poaLoading, setPOALoading] = useState(false);
 
   // Farcaster share helper
   const openUrl = useOpenUrl();
@@ -110,6 +121,38 @@ export function EventDetailsPage({
     loadCreatorInfo();
   }, [event, userAddress, refreshTrigger]);
 
+  // Load POA data for event creators and attendees
+  const loadPOAData = async () => {
+    if (!userAddress) return;
+    
+    const isCreator = userAddress.toLowerCase() === event.creator.toLowerCase();
+    
+    try {
+      setPOALoading(true);
+      
+      // Load registrations for creators
+      if (isCreator) {
+        const registrations = await getEventRegistrations(event.id);
+        setEventRegistrations(registrations);
+      }
+      
+      // Load user's POA if they're registered
+      if (isRegistered) {
+        const poa = await getEventPOAForAttendee(event.id, userAddress);
+        setUserPOA(poa);
+      }
+      
+    } catch (error) {
+      console.error('Failed to load POA data:', error);
+    } finally {
+      setPOALoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPOAData();
+  }, [event.id, userAddress, isRegistered, refreshTrigger]);
+
   const loadCreatorInfo = async () => {
     if (!event?.creator) return;
     
@@ -169,10 +212,20 @@ export function EventDetailsPage({
     }
   };
 
-  const isCreator = userAddress && event.creator === userAddress;
+  const isCreator = userAddress && event.creator.toLowerCase() === userAddress.toLowerCase();
   const isAttendee = userAddress && isRegistered && !isCreator;
   const canRSVP = userAddress && !isCreator && !isRegistered;
   const isFull = event.maxAttendees && event.attendees.length >= event.maxAttendees;
+  
+  // Debug logging
+  console.log('🔍 Event Details Debug:', {
+    userAddress,
+    eventCreator: event.creator,
+    isCreator,
+    isAttendee,
+    canRSVP,
+    activeTab
+  });
   
   const formatDate = (date: string, time: string, endTime?: string) => {
     const eventDate = new Date(`${date}T${time}`);
@@ -393,7 +446,17 @@ export function EventDetailsPage({
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <span className="text-xs sm:text-sm text-purple-600 font-medium">Event Creator</span>
+                    <span className="text-xs sm:text-sm text-purple-600 font-medium">
+                      {isCreator ? "You are the Event Creator" : "Event Creator"}
+                    </span>
+                    {isCreator && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 self-start">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        You
+                      </span>
+                    )}
                     {creatorDisplayInfo.isBaseName && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200 self-start">
                         <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,57 +633,203 @@ export function EventDetailsPage({
 
         {/* Sidebar */}
         <div className="space-y-4 sm:space-y-6">
-          {/* Attendees Section */}
-          <div className="bg-[var(--app-card-bg)] rounded-xl p-4 sm:p-6 border border-[var(--app-card-border)]">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="flex-1">
-                <h3 className="font-bold text-base sm:text-lg text-[var(--app-foreground)]">
-                  Attendees ({event.attendees.length}{event.maxAttendees && ` / ${event.maxAttendees}`})
+          {/* Creator Status Indicator */}
+          {isCreator && (
+            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl p-4 sm:p-6 border border-green-500/30">
+              <div className="text-center">
+                <div className="text-4xl mb-2">👑</div>
+                <h3 className="font-bold text-lg text-[var(--app-foreground)] mb-2">
+                  You're the Event Creator!
                 </h3>
+                <p className="text-sm text-[var(--app-foreground-muted)] mb-4">
+                  You can manage POA settings, check in attendees, and view analytics.
+                </p>
+                <div className="text-xs text-[var(--app-foreground-muted)]">
+                  Look for the POA management tabs below ↓
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* POA Notification for Attendees */}
+          {!isCreator && userPOA && userPOA.status === 'issued' && (
+            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl p-4 sm:p-6 border border-green-500/30">
+              <div className="text-center">
+                <div className="text-4xl mb-2">🎫</div>
+                <h3 className="font-bold text-lg text-[var(--app-foreground)] mb-2">
+                  POA Available!
+                </h3>
+                <p className="text-sm text-[var(--app-foreground-muted)] mb-4">
+                  You have a Proof of Attendance waiting to be claimed.
+                </p>
                 <button
-                  onClick={() => setShowAttendees(!showAttendees)}
-                  className="text-[var(--app-accent)] text-sm hover:underline font-medium mt-1"
+                  onClick={() => setActiveTab('my-poa')}
+                  className="w-full py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-blue-600 transition-all"
                 >
-                  {showAttendees ? 'Hide' : 'Show'} attendee list
+                  Claim My POA 🎯
                 </button>
               </div>
-              {event.maxAttendees && (
-                <div className="text-center sm:text-right">
-                  <div className="text-sm text-[var(--app-foreground-muted)]">Capacity</div>
-                  <div className="text-xl sm:text-2xl font-bold text-[var(--app-accent)]">
-                    {event.attendees.length} / {event.maxAttendees}
-                  </div>
-                  <div className="w-full bg-[var(--app-gray)] rounded-full h-2 mt-2">
-                    <div 
-                      className="bg-[var(--app-accent)] h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${Math.min((event.attendees.length / event.maxAttendees) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
+            </div>
+          )}
+
+          {/* Tab Navigation */}
+          <div className="bg-[var(--app-card-bg)] rounded-xl border border-[var(--app-card-border)] overflow-hidden">
+            {/* Tab Headers */}
+            <div className="flex overflow-x-auto border-b border-[var(--app-card-border)]">
+              <button
+                onClick={() => setActiveTab('attendees')}
+                className={`px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeTab === 'attendees' 
+                    ? 'bg-[var(--app-accent)]/10 text-[var(--app-accent)] border-b-2 border-[var(--app-accent)]' 
+                    : 'text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]'
+                }`}
+              >
+                👥 Attendees ({event.attendees.length})
+              </button>
+              
+              {isCreator && (
+                <>
+                  <button
+                    onClick={() => setActiveTab('checkin')}
+                    className={`px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                      activeTab === 'checkin' 
+                        ? 'bg-[var(--app-accent)]/10 text-[var(--app-accent)] border-b-2 border-[var(--app-accent)]' 
+                        : 'text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]'
+                    }`}
+                  >
+                    ✅ Check-in
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('poa-settings')}
+                    className={`px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                      activeTab === 'poa-settings' 
+                        ? 'bg-[var(--app-accent)]/10 text-[var(--app-accent)] border-b-2 border-[var(--app-accent)]' 
+                        : 'text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]'
+                    }`}
+                  >
+                    🎫 POA Settings
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('poa-dashboard')}
+                    className={`px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                      activeTab === 'poa-dashboard' 
+                        ? 'bg-[var(--app-accent)]/10 text-[var(--app-accent)] border-b-2 border-[var(--app-accent)]' 
+                        : 'text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]'
+                    }`}
+                  >
+                    📊 POA Dashboard
+                  </button>
+                </>
+              )}
+              
+              {!isCreator && userPOA && (
+                <button
+                  onClick={() => setActiveTab('my-poa')}
+                  className={`px-3 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeTab === 'my-poa' 
+                      ? 'bg-[var(--app-accent)]/10 text-[var(--app-accent)] border-b-2 border-[var(--app-accent)]' 
+                      : 'text-[var(--app-foreground-muted)] hover:text-[var(--app-foreground)]'
+                  }`}
+                >
+                  🎯 My POA
+                </button>
               )}
             </div>
-            {showAttendees && (
-              <div className="bg-[var(--app-gray)] rounded-lg p-4">
-                {event.attendees.length === 0 ? (
-                  <p className="text-[var(--app-foreground-muted)] text-sm">No attendees yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {event.attendees.map((attendee, idx) => (
-                      <div key={attendee + idx} className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-[var(--app-accent)] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {idx + 1}
+
+            {/* Tab Content */}
+            <div className="p-4 sm:p-6">
+              {activeTab === 'attendees' && (
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-base sm:text-lg text-[var(--app-foreground)]">
+                        Attendees ({event.attendees.length}{event.maxAttendees && ` / ${event.maxAttendees}`})
+                      </h3>
+                      <button
+                        onClick={() => setShowAttendees(!showAttendees)}
+                        className="text-[var(--app-accent)] text-sm hover:underline font-medium mt-1"
+                      >
+                        {showAttendees ? 'Hide' : 'Show'} attendee list
+                      </button>
+                    </div>
+                    {event.maxAttendees && (
+                      <div className="text-center sm:text-right">
+                        <div className="text-sm text-[var(--app-foreground-muted)]">Capacity</div>
+                        <div className="text-xl sm:text-2xl font-bold text-[var(--app-accent)]">
+                          {event.attendees.length} / {event.maxAttendees}
                         </div>
-                        <span className="font-mono text-xs sm:text-sm break-all min-w-0 flex-1">{attendee}</span>
-                        {attendee === event.creator && (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex-shrink-0">Creator</span>
-                        )}
-                        {/* TODO: Add Base name display for attendees */}
+                        <div className="w-full bg-[var(--app-gray)] rounded-full h-2 mt-2">
+                          <div 
+                            className="bg-[var(--app-accent)] h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${Math.min((event.attendees.length / event.maxAttendees) * 100, 100)}%` }}
+                          />
+                        </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                  {showAttendees && (
+                    <div className="bg-[var(--app-gray)] rounded-lg p-4">
+                      {event.attendees.length === 0 ? (
+                        <p className="text-[var(--app-foreground-muted)] text-sm">No attendees yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {event.attendees.map((attendee, idx) => (
+                            <div key={attendee + idx} className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-[var(--app-accent)] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {idx + 1}
+                              </div>
+                              <span className="font-mono text-xs sm:text-sm break-all min-w-0 flex-1">{attendee}</span>
+                              {attendee === event.creator && (
+                                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex-shrink-0">Creator</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* POA Components */}
+              {activeTab === 'checkin' && isCreator && (
+                <AttendeeCheckIn
+                  event={event}
+                  eventRegistrations={eventRegistrations}
+                  userAddress={userAddress}
+                  onCheckInComplete={(poa) => {
+                    loadPOAData();
+                  }}
+                />
+              )}
+
+              {activeTab === 'poa-settings' && isCreator && (
+                <CheckInSettings
+                  event={event}
+                  onSettingsUpdate={(settings) => {
+                    console.log('POA settings updated:', settings);
+                  }}
+                />
+              )}
+
+              {activeTab === 'poa-dashboard' && isCreator && (
+                <POADashboard
+                  event={event}
+                  userAddress={userAddress}
+                />
+              )}
+
+              {activeTab === 'my-poa' && !isCreator && userPOA && userAddress && (
+                <POAClaimCard
+                  poa={userPOA}
+                  event={event}
+                  userAddress={userAddress}
+                  onClaim={(poa) => {
+                    setUserPOA(poa);
+                  }}
+                />
+              )}
+            </div>
           </div>
 
           {/* Calendar Integration Buttons */}
@@ -650,3 +859,4 @@ export function EventDetailsPage({
     </div>
   );
 }
+

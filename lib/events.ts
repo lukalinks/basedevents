@@ -19,6 +19,7 @@ export interface Event {
   createdAt: string
   updatedAt: string
   imageUrl?: string
+  slug?: string // SEO-friendly URL slug
   // Paid event fields
   isPaid?: boolean;
   priceUSDC?: number;
@@ -107,9 +108,119 @@ export interface EventSupport {
   confirmedAt?: string
 }
 
+export interface ProofOfAttendance {
+  id: string
+  eventId: string
+  attendeeAddress: string
+  attendeeName?: string
+  status: 'pending' | 'issued' | 'claimed' | 'revoked'
+  poaType: 'digital' | 'nft' | 'both'
+  
+  // Check-in information
+  checkedInAt?: string
+  checkedInBy?: string
+  checkInMethod?: 'manual' | 'qr_code' | 'geolocation' | 'nfc'
+  checkInLocation?: string
+  
+  // Digital POA data
+  poaTitle?: string
+  poaDescription?: string
+  poaImageUrl?: string
+  poaMetadata?: any
+  
+  // NFT POA data
+  nftContractAddress?: string
+  nftTokenId?: string
+  nftTxHash?: string
+  nftMetadataUri?: string
+  
+  // Timestamps
+  createdAt: string
+  updatedAt: string
+  issuedAt?: string
+  claimedAt?: string
+  
+  // Optional event details when fetched with join
+  event?: Event
+}
+
+export interface EventCheckInSettings {
+  id: string
+  eventId: string
+  
+  // Check-in configuration
+  checkInEnabled: boolean
+  checkInWindowStart?: string
+  checkInWindowEnd?: string
+  requireGeolocation: boolean
+  allowedCheckInRadius: number // meters
+  eventLatitude?: number
+  eventLongitude?: number
+  
+  // POA configuration
+  autoIssuePoa: boolean
+  poaTemplateTitle?: string
+  poaTemplateDescription?: string
+  poaTemplateImageUrl?: string
+  poaCustomMetadata?: any
+  
+  // NFT POA configuration
+  enableNftPoa: boolean
+  nftContractAddress?: string
+  nftBaseUri?: string
+  nftCollectionName?: string
+  nftCollectionSymbol?: string
+  
+  createdAt: string
+  updatedAt: string
+}
+
+export interface POATemplate {
+  id: string
+  creatorAddress: string
+  name: string
+  description?: string
+  category: string
+  templateImageUrl?: string
+  templateMetadata?: any
+  backgroundColor: string
+  textColor: string
+  accentColor: string
+  usageCount: number
+  isPublic: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 // Create a new event
 export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event> {
   console.log('Creating event with data:', eventData);
+  
+  // Generate slug from title
+  const { slugify } = await import('./slugify');
+  const baseSlug = slugify(eventData.title);
+  
+  // Ensure slug uniqueness by checking database
+  let slug = baseSlug;
+  let counter = 1;
+  let isUnique = false;
+  
+  while (!isUnique) {
+    const { data: existingEvent } = await supabase
+      .from('events')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+    
+    if (!existingEvent) {
+      isUnique = true;
+    } else {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+  
+  console.log('Generated unique slug:', slug);
   
   // Transform camelCase to snake_case for database
   const dbEventData: any = {
@@ -123,11 +234,13 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'u
     attendees: eventData.attendees,
     max_attendees: eventData.maxAttendees,
     tags: eventData.tags,
+    category: eventData.category || 'General', // Default category if not provided
     is_recurring: eventData.isRecurring,
     recurring_pattern: eventData.recurringPattern,
     status: eventData.status,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    slug: slug, // Store the generated slug
     is_paid: eventData.isPaid,
     price_usdc: eventData.priceUSDC,
     // Token gating fields
@@ -830,6 +943,7 @@ export async function getEventComments(eventId: string): Promise<EventComment[]>
  * Generate a URL-friendly slug for an event
  */
 export function getEventUrl(event: Event, baseUrl?: string): string {
+
   // Temporary: Use UUID for now to ensure URLs work
   // TODO: Re-enable slug generation once lookup is stable
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_URL || '');
@@ -864,6 +978,7 @@ function transformEventFromDB(dbEvent: any): Event {
     createdAt: dbEvent.created_at,
     updatedAt: dbEvent.updated_at,
     imageUrl: dbEvent.image_url,
+    slug: dbEvent.slug, // Include slug from database
     isPaid: dbEvent.is_paid,
     priceUSDC: dbEvent.price_usdc,
     // Token gating fields
@@ -905,9 +1020,26 @@ export async function getEventById(eventIdOrSlug: string): Promise<Event | null>
     console.log('🔍 Looking up event:', eventIdOrSlug);
     
     // Import slugify utilities
-    const { isUUID, extractEventIdFromSlug } = await import('./slugify');
+    const { isUUID } = await import('./slugify');
     
-    // Strategy 1: Try exact UUID match first
+    // Strategy 1: Try slug lookup first (most common case for new events)
+    if (!isUUID(eventIdOrSlug)) {
+      console.log('✅ Detected slug, trying slug lookup');
+      const { data: event, error: slugError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('slug', eventIdOrSlug)
+        .single();
+      
+      if (!slugError && event) {
+        console.log('✅ Found event by slug:', event.slug);
+        return await processEventWithRegistrations(event);
+      } else {
+        console.log('⚠️ No event found by slug:', eventIdOrSlug);
+      }
+    }
+    
+    // Strategy 2: Try exact UUID match (backward compatibility)
     if (isUUID(eventIdOrSlug)) {
       console.log('✅ Detected UUID, using exact match');
       const { data: event, error: eventError } = await supabase
@@ -922,43 +1054,21 @@ export async function getEventById(eventIdOrSlug: string): Promise<Event | null>
       }
     }
     
-    // Strategy 2: If it's a slug, try to find by partial ID match
-    if (!isUUID(eventIdOrSlug)) {
-      const shortId = extractEventIdFromSlug(eventIdOrSlug);
-      console.log('🔍 Extracted short ID from slug:', shortId);
-      
-      if (shortId.length === 8 && /^[0-9a-f]{8}$/i.test(shortId)) {
-        console.log('✅ Trying LIKE query for short ID:', `${shortId}%`);
-        
-        // Get all events and filter on the client side for more reliable matching
-        const { data: events, error: eventsError } = await supabase
-          .from('events')
-          .select('*');
-        
-        if (!eventsError && events) {
-          const matchingEvent = events.find(event => event.id.toLowerCase().startsWith(shortId.toLowerCase()));
-          if (matchingEvent) {
-            console.log('✅ Found event by short ID match:', matchingEvent.id);
-            return await processEventWithRegistrations(matchingEvent);
-          }
-        }
-      }
-    }
-    
-    // Strategy 3: Fallback - try exact match (for backward compatibility)
-    console.log('⚠️ Trying fallback exact match');
+    // Strategy 3: Fallback - try exact match on ID (for any edge cases)
+    console.log('⚠️ Trying fallback exact match on ID');
     const { data: event, error: eventError } = await supabase
       .from('events')
       .select('*')
       .eq('id', eventIdOrSlug)
       .single();
     
-    if (eventError) {
-      console.warn('❌ Event not found with any strategy:', eventIdOrSlug);
-      return null;
+    if (!eventError && event) {
+      console.log('✅ Found event by ID fallback');
+      return await processEventWithRegistrations(event);
     }
     
-    return await processEventWithRegistrations(event);
+    console.warn('❌ Event not found with any strategy:', eventIdOrSlug);
+    return null;
   } catch (error) {
     console.error('Error in getEventById:', error);
     throw error;
@@ -1377,5 +1487,656 @@ function transformSupportFromDB(dbSupport: any): EventSupport {
     status: dbSupport.status,
     createdAt: dbSupport.created_at,
     confirmedAt: dbSupport.confirmed_at
+  };
+}
+
+// ============================================================================
+// PROOF OF ATTENDANCE FUNCTIONS
+// ============================================================================
+
+/**
+ * Create or update check-in settings for an event
+ */
+export async function createOrUpdateCheckInSettings(
+  eventId: string,
+  settings: Omit<EventCheckInSettings, 'id' | 'eventId' | 'createdAt' | 'updatedAt'>
+): Promise<EventCheckInSettings> {
+  console.log('🔧 Creating/updating check-in settings for event:', eventId);
+  
+  try {
+    const settingsData = {
+      event_id: eventId,
+      check_in_enabled: settings.checkInEnabled,
+      check_in_window_start: settings.checkInWindowStart,
+      check_in_window_end: settings.checkInWindowEnd,
+      require_geolocation: settings.requireGeolocation,
+      allowed_check_in_radius: settings.allowedCheckInRadius,
+      event_latitude: settings.eventLatitude,
+      event_longitude: settings.eventLongitude,
+      auto_issue_poa: settings.autoIssuePoa,
+      poa_template_title: settings.poaTemplateTitle,
+      poa_template_description: settings.poaTemplateDescription,
+      poa_template_image_url: settings.poaTemplateImageUrl,
+      poa_custom_metadata: settings.poaCustomMetadata,
+      enable_nft_poa: settings.enableNftPoa,
+      nft_contract_address: settings.nftContractAddress,
+      nft_base_uri: settings.nftBaseUri,
+      nft_collection_name: settings.nftCollectionName,
+      nft_collection_symbol: settings.nftCollectionSymbol,
+    };
+
+    const { data, error } = await supabase
+      .from('event_check_in_settings')
+      .upsert(settingsData, { onConflict: 'event_id' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error creating/updating check-in settings:', error);
+      throw error;
+    }
+
+    console.log('✅ Check-in settings created/updated successfully');
+    return transformCheckInSettingsFromDB(data);
+  } catch (error) {
+    console.error('❌ Failed to create/update check-in settings:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get check-in settings for an event
+ */
+export async function getEventCheckInSettings(eventId: string): Promise<EventCheckInSettings | null> {
+  try {
+    const { data, error } = await supabase
+      .from('event_check_in_settings')
+      .select('*')
+      .eq('event_id', eventId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No settings found
+      }
+      console.error('Error fetching check-in settings:', error);
+      throw error;
+    }
+
+    return data ? transformCheckInSettingsFromDB(data) : null;
+  } catch (error) {
+    console.error('Failed to fetch check-in settings:', error);
+    throw error;
+  }
+}
+
+/**
+ * Check in an attendee to an event
+ */
+export async function checkInAttendee(
+  eventId: string,
+  attendeeAddress: string,
+  checkedInBy: string,
+  checkInData: {
+    method?: 'manual' | 'qr_code' | 'geolocation' | 'nfc'
+    location?: string
+    attendeeName?: string
+    latitude?: number
+    longitude?: number
+  } = {}
+): Promise<ProofOfAttendance> {
+  console.log('📋 Checking in attendee:', { eventId, attendeeAddress, checkedInBy });
+  
+  try {
+    // Verify attendee is registered for the event
+    const isRegistered = await isUserRegisteredForEvent(eventId, attendeeAddress);
+    if (!isRegistered) {
+      throw new Error('Attendee must be registered for the event before checking in');
+    }
+
+    // Get check-in settings
+    const settings = await getEventCheckInSettings(eventId);
+    
+    // Validate check-in window if settings exist
+    if (settings && settings.checkInEnabled) {
+      const now = new Date();
+      if (settings.checkInWindowStart && new Date(settings.checkInWindowStart) > now) {
+        throw new Error('Check-in has not started yet');
+      }
+      if (settings.checkInWindowEnd && new Date(settings.checkInWindowEnd) < now) {
+        throw new Error('Check-in period has ended');
+      }
+    }
+
+    // Validate geolocation if required
+    if (settings?.requireGeolocation && checkInData.latitude && checkInData.longitude) {
+      if (!settings.eventLatitude || !settings.eventLongitude) {
+        throw new Error('Event location not configured for geolocation check-in');
+      }
+      
+      const distance = calculateDistance(
+        checkInData.latitude,
+        checkInData.longitude,
+        settings.eventLatitude,
+        settings.eventLongitude
+      );
+      
+      if (distance > settings.allowedCheckInRadius) {
+        throw new Error(`Check-in location is ${Math.round(distance)}m away. Must be within ${settings.allowedCheckInRadius}m of event location`);
+      }
+    }
+
+    // Check if already checked in
+    const existingPOA = await getEventPOAForAttendee(eventId, attendeeAddress);
+    if (existingPOA && existingPOA.checkedInAt) {
+      console.log('✅ Attendee already checked in, returning existing POA');
+      return existingPOA;
+    }
+
+    // Get event details for POA
+    const event = await getEventById(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    // Create or update POA record
+    const poaData = {
+      event_id: eventId,
+      attendee_address: attendeeAddress,
+      attendee_name: checkInData.attendeeName || null,
+      status: settings?.autoIssuePoa ? 'issued' : 'pending',
+      poa_type: settings?.enableNftPoa ? 'both' : 'digital',
+      checked_in_at: new Date().toISOString(),
+      checked_in_by: checkedInBy,
+      check_in_method: checkInData.method || 'manual',
+      check_in_location: checkInData.location || null,
+      poa_title: settings?.poaTemplateTitle || `${event.title} - Proof of Attendance`,
+      poa_description: settings?.poaTemplateDescription || `You attended ${event.title} on ${event.date}`,
+      poa_image_url: settings?.poaTemplateImageUrl || event.imageUrl,
+      poa_metadata: settings?.poaCustomMetadata || null,
+      issued_at: settings?.autoIssuePoa ? new Date().toISOString() : null,
+    };
+
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .upsert(poaData, { onConflict: 'event_id,attendee_address' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error creating POA record:', error);
+      throw error;
+    }
+
+    console.log('✅ Attendee checked in successfully');
+    return transformPOAFromDB(data);
+  } catch (error) {
+    console.error('❌ Failed to check in attendee:', error);
+    throw error;
+  }
+}
+
+/**
+ * Issue a POA to an attendee (digital and/or NFT)
+ */
+export async function issuePOA(
+  eventId: string,
+  attendeeAddress: string,
+  issuedBy: string,
+  options: {
+    poaType?: 'digital' | 'nft' | 'both'
+    nftTxHash?: string
+    nftTokenId?: string
+    customMetadata?: any
+  } = {}
+): Promise<ProofOfAttendance> {
+  console.log('🎫 Issuing POA:', { eventId, attendeeAddress, issuedBy, options });
+  
+  try {
+    // Get existing POA record
+    const existingPOA = await getEventPOAForAttendee(eventId, attendeeAddress);
+    if (!existingPOA) {
+      throw new Error('Attendee must be checked in before issuing POA');
+    }
+
+    if (existingPOA.status === 'issued' || existingPOA.status === 'claimed') {
+      console.log('✅ POA already issued, returning existing POA');
+      return existingPOA;
+    }
+
+    // Update POA record
+    const updateData: any = {
+      status: 'issued',
+      issued_at: new Date().toISOString(),
+      poa_type: options.poaType || existingPOA.poaType,
+    };
+
+    if (options.nftTxHash) {
+      updateData.nft_tx_hash = options.nftTxHash;
+    }
+    if (options.nftTokenId) {
+      updateData.nft_token_id = options.nftTokenId;
+    }
+    if (options.customMetadata) {
+      updateData.poa_metadata = options.customMetadata;
+    }
+
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .update(updateData)
+      .eq('event_id', eventId)
+      .eq('attendee_address', attendeeAddress)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error issuing POA:', error);
+      throw error;
+    }
+
+    console.log('✅ POA issued successfully');
+    return transformPOAFromDB(data);
+  } catch (error) {
+    console.error('❌ Failed to issue POA:', error);
+    throw error;
+  }
+}
+
+/**
+ * Batch check-in multiple attendees
+ */
+export async function batchCheckInAttendees(
+  eventId: string,
+  attendeeAddresses: string[],
+  checkedInBy: string,
+  checkInData: {
+    method?: 'manual' | 'qr_code' | 'geolocation' | 'nfc'
+    location?: string
+  } = {}
+): Promise<ProofOfAttendance[]> {
+  console.log('📋 Batch checking in attendees:', { eventId, count: attendeeAddresses.length });
+  
+  const results: ProofOfAttendance[] = [];
+  const errors: Array<{ address: string; error: string }> = [];
+
+  for (const attendeeAddress of attendeeAddresses) {
+    try {
+      const poa = await checkInAttendee(eventId, attendeeAddress, checkedInBy, {
+        ...checkInData,
+        attendeeName: undefined, // Will be fetched from registration
+      });
+      results.push(poa);
+    } catch (error) {
+      console.error(`❌ Failed to check in ${attendeeAddress}:`, error);
+      errors.push({
+        address: attendeeAddress,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  console.log(`✅ Batch check-in completed: ${results.length} success, ${errors.length} errors`);
+  
+  if (errors.length > 0) {
+    console.warn('⚠️ Some check-ins failed:', errors);
+  }
+
+  return results;
+}
+
+/**
+ * Get POA for a specific attendee and event
+ */
+export async function getEventPOAForAttendee(
+  eventId: string,
+  attendeeAddress: string
+): Promise<ProofOfAttendance | null> {
+  try {
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('attendee_address', attendeeAddress)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No POA found
+      }
+      console.error('Error fetching POA:', error);
+      throw error;
+    }
+
+    return data ? transformPOAFromDB(data) : null;
+  } catch (error) {
+    console.error('Failed to fetch POA:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all POAs for an event
+ */
+export async function getEventPOAs(eventId: string): Promise<ProofOfAttendance[]> {
+  try {
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('checked_in_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching event POAs:', error);
+      throw error;
+    }
+
+    return data?.map(transformPOAFromDB) || [];
+  } catch (error) {
+    console.error('Failed to fetch event POAs:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all POAs for a user across all events
+ */
+export async function getUserPOAs(userAddress: string): Promise<ProofOfAttendance[]> {
+  try {
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .select(`
+        *,
+        events (
+          id,
+          title,
+          date,
+          time,
+          location,
+          image_url,
+          creator
+        )
+      `)
+      .eq('attendee_address', userAddress)
+      .neq('status', 'pending')
+      .order('issued_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user POAs:', error);
+      throw error;
+    }
+
+    return data?.map(poa => ({
+      ...transformPOAFromDB(poa),
+      event: poa.events ? transformEventFromDB(poa.events) : undefined
+    })) || [];
+  } catch (error) {
+    console.error('Failed to fetch user POAs:', error);
+    throw error;
+  }
+}
+
+/**
+ * Claim a POA (mark as claimed by user)
+ */
+export async function claimPOA(
+  eventId: string,
+  attendeeAddress: string
+): Promise<ProofOfAttendance> {
+  console.log('🎯 Claiming POA:', { eventId, attendeeAddress });
+  
+  try {
+    const { data, error } = await supabase
+      .from('proof_of_attendance')
+      .update({
+        status: 'claimed',
+        claimed_at: new Date().toISOString()
+      })
+      .eq('event_id', eventId)
+      .eq('attendee_address', attendeeAddress)
+      .eq('status', 'issued')
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error claiming POA:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('POA not found or not in issued status');
+    }
+
+    console.log('✅ POA claimed successfully');
+    return transformPOAFromDB(data);
+  } catch (error) {
+    console.error('❌ Failed to claim POA:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get POA templates
+ */
+export async function getPOATemplates(
+  creatorAddress?: string,
+  category?: string,
+  publicOnly: boolean = false
+): Promise<POATemplate[]> {
+  try {
+    let query = supabase.from('poa_templates').select('*');
+
+    if (publicOnly) {
+      query = query.eq('is_public', true);
+    } else if (creatorAddress) {
+      query = query.or(`creator_address.eq.${creatorAddress},is_public.eq.true`);
+    }
+
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    query = query.order('usage_count', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching POA templates:', error);
+      throw error;
+    }
+
+    return data?.map(transformPOATemplateFromDB) || [];
+  } catch (error) {
+    console.error('Failed to fetch POA templates:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new POA template
+ */
+export async function createPOATemplate(
+  templateData: Omit<POATemplate, 'id' | 'usageCount' | 'createdAt' | 'updatedAt'>
+): Promise<POATemplate> {
+  try {
+    const dbData = {
+      creator_address: templateData.creatorAddress,
+      name: templateData.name,
+      description: templateData.description,
+      category: templateData.category,
+      template_image_url: templateData.templateImageUrl,
+      template_metadata: templateData.templateMetadata,
+      background_color: templateData.backgroundColor,
+      text_color: templateData.textColor,
+      accent_color: templateData.accentColor,
+      is_public: templateData.isPublic,
+    };
+
+    const { data, error } = await supabase
+      .from('poa_templates')
+      .insert([dbData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating POA template:', error);
+      throw error;
+    }
+
+    return transformPOATemplateFromDB(data);
+  } catch (error) {
+    console.error('Failed to create POA template:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get POA statistics for an event
+ */
+export async function getEventPOAStats(eventId: string): Promise<{
+  totalRegistrations: number
+  totalCheckedIn: number
+  totalPOAsIssued: number
+  totalPOAsClaimed: number
+  checkInRate: number
+  claimRate: number
+}> {
+  try {
+    const [registrationCount, poaStats] = await Promise.all([
+      getEventAttendeeCount(eventId),
+      supabase
+        .from('proof_of_attendance')
+        .select('status, checked_in_at')
+        .eq('event_id', eventId)
+    ]);
+
+    if (poaStats.error) {
+      console.error('Error fetching POA stats:', poaStats.error);
+      throw poaStats.error;
+    }
+
+    const poas = poaStats.data || [];
+    const totalCheckedIn = poas.filter(poa => poa.checked_in_at).length;
+    const totalPOAsIssued = poas.filter(poa => ['issued', 'claimed'].includes(poa.status)).length;
+    const totalPOAsClaimed = poas.filter(poa => poa.status === 'claimed').length;
+
+    return {
+      totalRegistrations: registrationCount,
+      totalCheckedIn,
+      totalPOAsIssued,
+      totalPOAsClaimed,
+      checkInRate: registrationCount > 0 ? (totalCheckedIn / registrationCount) * 100 : 0,
+      claimRate: totalPOAsIssued > 0 ? (totalPOAsClaimed / totalPOAsIssued) * 100 : 0,
+    };
+  } catch (error) {
+    console.error('Failed to fetch POA stats:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Calculate distance between two coordinates in meters
+ */
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+/**
+ * Transform database row to ProofOfAttendance interface
+ */
+function transformPOAFromDB(dbPOA: any): ProofOfAttendance {
+  return {
+    id: dbPOA.id,
+    eventId: dbPOA.event_id,
+    attendeeAddress: dbPOA.attendee_address,
+    attendeeName: dbPOA.attendee_name,
+    status: dbPOA.status,
+    poaType: dbPOA.poa_type,
+    checkedInAt: dbPOA.checked_in_at,
+    checkedInBy: dbPOA.checked_in_by,
+    checkInMethod: dbPOA.check_in_method,
+    checkInLocation: dbPOA.check_in_location,
+    poaTitle: dbPOA.poa_title,
+    poaDescription: dbPOA.poa_description,
+    poaImageUrl: dbPOA.poa_image_url,
+    poaMetadata: dbPOA.poa_metadata,
+    nftContractAddress: dbPOA.nft_contract_address,
+    nftTokenId: dbPOA.nft_token_id?.toString(),
+    nftTxHash: dbPOA.nft_tx_hash,
+    nftMetadataUri: dbPOA.nft_metadata_uri,
+    createdAt: dbPOA.created_at,
+    updatedAt: dbPOA.updated_at,
+    issuedAt: dbPOA.issued_at,
+    claimedAt: dbPOA.claimed_at,
+  };
+}
+
+/**
+ * Transform database row to EventCheckInSettings interface
+ */
+function transformCheckInSettingsFromDB(dbSettings: any): EventCheckInSettings {
+  return {
+    id: dbSettings.id,
+    eventId: dbSettings.event_id,
+    checkInEnabled: dbSettings.check_in_enabled,
+    checkInWindowStart: dbSettings.check_in_window_start,
+    checkInWindowEnd: dbSettings.check_in_window_end,
+    requireGeolocation: dbSettings.require_geolocation,
+    allowedCheckInRadius: dbSettings.allowed_check_in_radius,
+    eventLatitude: dbSettings.event_latitude,
+    eventLongitude: dbSettings.event_longitude,
+    autoIssuePoa: dbSettings.auto_issue_poa,
+    poaTemplateTitle: dbSettings.poa_template_title,
+    poaTemplateDescription: dbSettings.poa_template_description,
+    poaTemplateImageUrl: dbSettings.poa_template_image_url,
+    poaCustomMetadata: dbSettings.poa_custom_metadata,
+    enableNftPoa: dbSettings.enable_nft_poa,
+    nftContractAddress: dbSettings.nft_contract_address,
+    nftBaseUri: dbSettings.nft_base_uri,
+    nftCollectionName: dbSettings.nft_collection_name,
+    nftCollectionSymbol: dbSettings.nft_collection_symbol,
+    createdAt: dbSettings.created_at,
+    updatedAt: dbSettings.updated_at,
+  };
+}
+
+/**
+ * Transform database row to POATemplate interface
+ */
+function transformPOATemplateFromDB(dbTemplate: any): POATemplate {
+  return {
+    id: dbTemplate.id,
+    creatorAddress: dbTemplate.creator_address,
+    name: dbTemplate.name,
+    description: dbTemplate.description,
+    category: dbTemplate.category,
+    templateImageUrl: dbTemplate.template_image_url,
+    templateMetadata: dbTemplate.template_metadata,
+    backgroundColor: dbTemplate.background_color,
+    textColor: dbTemplate.text_color,
+    accentColor: dbTemplate.accent_color,
+    usageCount: dbTemplate.usage_count,
+    isPublic: dbTemplate.is_public,
+    createdAt: dbTemplate.created_at,
+    updatedAt: dbTemplate.updated_at,
   };
 }

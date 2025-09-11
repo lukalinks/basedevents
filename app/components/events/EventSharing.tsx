@@ -185,6 +185,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
     }
   };
 
+
   if (variant === 'compact') {
     return (
       <div className={`flex flex-wrap gap-2 ${className}`}>
@@ -206,6 +207,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
             {isSharing ? '...' : shareSuccess ? '✓' : 'Farcaster'}
           </span>
         </Button>
+
         
         {/* Copy Link */}
         <Button
@@ -241,7 +243,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
         )}
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Farcaster Share */}
         <Button
           variant="outline"
@@ -257,6 +259,7 @@ export function EventSharing({ event, variant = 'default', className = '' }: Eve
             {isSharing ? 'Sharing...' : shareSuccess ? 'Shared!' : 'Share on Farcaster'}
           </span>
         </Button>
+
         
         {/* Copy Event Link */}
         <Button

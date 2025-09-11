@@ -30,6 +30,7 @@ import {
   UserNFTTicketsCollection,
   MyEventsPage,
 } from "./components/EventComponents";
+import UserPOACollection from "./components/poa/UserPOACollection";
 import {
   createEvent,
   getAllEvents,
@@ -1421,14 +1422,15 @@ export default function App() {
             <span className="text-xs text-[var(--app-foreground-muted)] hidden sm:block">Find Your Next Event</span>
           </div>
         </div>
-        <Wallet className="z-10">
-          <ConnectWallet>
-            <div className="flex items-center gap-2">
-              <Name className="text-inherit" />
-              {address && <USDCBalance size="sm" showLabel={false} className="hidden sm:block" />}
-            </div>
-          </ConnectWallet>
-          <WalletDropdown>
+        <div className="flex items-center gap-3 z-10">
+          <Wallet>
+            <ConnectWallet>
+              <div className="flex items-center gap-2">
+                <Name className="text-inherit" />
+                {address && <USDCBalance size="sm" showLabel={false} className="hidden sm:block" />}
+              </div>
+            </ConnectWallet>
+            <WalletDropdown>
             <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
               <Avatar />
               <Name />
@@ -1437,8 +1439,9 @@ export default function App() {
               <USDCBalance className="mt-2" />
             </Identity>
             <WalletDropdownDisconnect />
-          </WalletDropdown>
-        </Wallet>
+            </WalletDropdown>
+          </Wallet>
+        </div>
       </header>
 
       {/* Enhanced Main content */}
@@ -1615,6 +1618,9 @@ export default function App() {
           </>
         )}
         {!isLoading && !error && activeTab === "hosts" && <HostsPage events={events} />}
+        {!isLoading && !error && activeTab === "poa-collection" && address && (
+          <UserPOACollection userAddress={address} />
+        )}
         {!isLoading && !error && activeTab === "profile" && (
           <ProfilePage 
             address={address} 

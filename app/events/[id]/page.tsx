@@ -85,6 +85,17 @@ export async function generateMetadata({ params }): Promise<Metadata> {
       'og:image:width': '1200',
       'og:image:height': '630',
       'og:image:type': 'image/jpeg',
+      // Farcaster Frame metadata
+      'fc:frame': 'vNext',
+      'fc:frame:image': imageUrl,
+      'fc:frame:image:aspect_ratio': '1.91:1',
+      'fc:frame:button:1': '🎫 View POA',
+      'fc:frame:button:1:action': 'post',
+      'fc:frame:button:1:target': `${process.env.NEXT_PUBLIC_URL}/api/frame/event/${params.id}/action`,
+      'fc:frame:button:2': '📅 Register',
+      'fc:frame:button:2:action': 'link',
+      'fc:frame:button:2:target': `${process.env.NEXT_PUBLIC_URL}/events/${params.id}`,
+      'fc:frame:post_url': `${process.env.NEXT_PUBLIC_URL}/api/frame/event/${params.id}/action`,
     },
   };
 }

@@ -1426,14 +1426,14 @@ export async function getEventSupport(eventId: string): Promise<EventSupport[]> 
   }
 }
 
-// Get total support amount for an event
+// Get total support amount for an event (including pending and confirmed)
 export async function getEventSupportTotal(eventId: string): Promise<number> {
   try {
     const { data, error } = await supabase
       .from('event_support')
       .select('amount_usdc')
       .eq('event_id', eventId)
-      .eq('status', 'confirmed');
+      .in('status', ['pending', 'confirmed']); // Include both pending and confirmed transactions
 
     if (error) {
       console.error('Error fetching event support total:', error);
@@ -1444,6 +1444,28 @@ export async function getEventSupportTotal(eventId: string): Promise<number> {
     return Math.round(total * 100) / 100; // Round to 2 decimal places
   } catch (error) {
     console.error('Failed to calculate event support total:', error);
+    return 0;
+  }
+}
+
+// Get only pending support amount for an event
+export async function getEventPendingSupportTotal(eventId: string): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('event_support')
+      .select('amount_usdc')
+      .eq('event_id', eventId)
+      .eq('status', 'pending'); // Only pending transactions
+
+    if (error) {
+      console.error('Error fetching pending support total:', error);
+      return 0;
+    }
+
+    const total = data?.reduce((sum, support) => sum + parseFloat(support.amount_usdc), 0) || 0;
+    return Math.round(total * 100) / 100; // Round to 2 decimal places
+  } catch (error) {
+    console.error('Failed to calculate pending support total:', error);
     return 0;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "../DemoComponents";
-import { Event, getEventSupportTotal } from "@/lib/events";
+import { Event, getEventSupportTotal, getEventPendingSupportTotal } from "@/lib/events";
 import { BASE_USDC_ADDRESS } from "@/lib/blockchain-base";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
@@ -22,6 +22,7 @@ export function EventSupportComponent({
   const [amount, setAmount] = useState<string>("5");
   const [isSupporting, setIsSupporting] = useState(false);
   const [supportTotal, setSupportTotal] = useState<number>(0);
+  const [pendingTotal, setPendingTotal] = useState<number>(0);
   const [showSupportForm, setShowSupportForm] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -46,6 +47,13 @@ export function EventSupportComponent({
 
   useEffect(() => {
     loadSupportTotal();
+    
+    // Set up periodic refresh for support total (in case transactions are confirmed in background)
+    const refreshInterval = setInterval(() => {
+      loadSupportTotal();
+    }, 10000); // Refresh every 10 seconds
+    
+    return () => clearInterval(refreshInterval);
   }, [event.id]);
 
   useEffect(() => {
@@ -78,6 +86,10 @@ export function EventSupportComponent({
     try {
       const total = await getEventSupportTotal(event.id);
       setSupportTotal(total);
+      
+      // Also fetch pending transactions separately
+      const pendingTotal = await getEventPendingSupportTotal(event.id);
+      setPendingTotal(pendingTotal);
     } catch (error) {
       console.error('Error loading support total:', error);
     }
@@ -142,7 +154,12 @@ export function EventSupportComponent({
 
       if (response.ok) {
         console.log('✅ Support transaction recorded successfully');
-        await loadSupportTotal(); // Refresh the total
+        
+        // Refresh the total with a slight delay to ensure database is updated
+        setTimeout(async () => {
+          await loadSupportTotal();
+        }, 500);
+        
         setAmount("5"); // Reset form
         setShowSupportForm(false);
         onSupportSuccessAction?.();
@@ -172,10 +189,20 @@ export function EventSupportComponent({
             <h3 className="text-base sm:text-lg font-bold text-[var(--app-foreground)] mb-1">Event Support</h3>
             <p className="text-[var(--app-foreground-muted)] text-sm sm:text-base">
               Total support received: <span className="font-bold text-[var(--app-accent)]">{supportTotal.toFixed(2)} USDC</span>
+              {pendingTotal > 0 && (
+                <span className="text-orange-600 text-xs ml-2">
+                  ({pendingTotal.toFixed(2)} pending confirmation)
+                </span>
+              )}
             </p>
             {supportTotal > 0 && (
               <p className="text-[var(--app-accent)] text-xs sm:text-sm mt-1">
                 Thank you to your supporters! 🎉
+              </p>
+            )}
+            {pendingTotal > 0 && (
+              <p className="text-orange-600 text-xs sm:text-sm mt-1">
+                Some transactions are still being confirmed on the blockchain
               </p>
             )}
           </div>
@@ -222,7 +249,16 @@ export function EventSupportComponent({
             <h3 className="font-bold text-[var(--app-foreground)] text-base sm:text-lg">Support This Event</h3>
             <p className="text-[var(--app-foreground-muted)] text-sm sm:text-base">
               Show your appreciation with USDC
-              {supportTotal > 0 && ` • ${supportTotal.toFixed(2)} USDC raised`}
+              {supportTotal > 0 && (
+                <span>
+                  {` • ${supportTotal.toFixed(2)} USDC raised`}
+                  {pendingTotal > 0 && (
+                    <span className="text-orange-600 text-xs">
+                      {` (${pendingTotal.toFixed(2)} pending)`}
+                    </span>
+                  )}
+                </span>
+              )}
             </p>
           </div>
         </div>

@@ -440,17 +440,17 @@ export function EnhancedEventList({
                 
                 {/* Tags Filter */}
                 {allTags.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-[var(--app-accent)]/10 rounded-lg flex items-center justify-center">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[var(--app-accent)]/10 rounded-lg flex items-center justify-center">
                         <Icon name="tag" size="sm" className="text-[var(--app-accent)]" />
                       </div>
-                      <span className="text-sm font-semibold text-[var(--app-foreground)]">Tags</span>
+                      <span className="text-xs sm:text-sm font-semibold text-[var(--app-foreground)]">Tags</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto sm:flex-wrap sm:overflow-x-visible pb-1 sm:pb-0 -mx-1 px-1 scrollbar-hide">
                       <button
                         onClick={() => setSelectedTag("")}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                        className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all flex items-center gap-1 sm:gap-1.5 flex-shrink-0 ${
                           selectedTag === "" 
                             ? "bg-[var(--app-accent)] text-white shadow-md shadow-[var(--app-accent)]/25" 
                             : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-accent)]/10 hover:text-[var(--app-accent)] border border-transparent hover:border-[var(--app-accent)]/20"
@@ -463,7 +463,7 @@ export function EnhancedEventList({
                         <button
                           key={tag}
                           onClick={() => setSelectedTag(tag)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
+                          className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all flex items-center gap-1 flex-shrink-0 ${
                             selectedTag === tag 
                               ? "bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] text-white shadow-md shadow-[var(--app-accent)]/25" 
                               : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-gradient-to-r hover:from-[var(--app-accent)]/10 hover:to-[var(--app-token-gate)]/10 hover:text-[var(--app-accent)] border border-transparent hover:border-[var(--app-accent)]/20"
@@ -481,26 +481,26 @@ export function EnhancedEventList({
           
           {/* Active Filters Summary */}
           {(selectedLocation || selectedTag || localSearchQuery) && (
-            <div className="bg-[var(--app-accent)]/10 border border-[var(--app-accent)]/20 rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="bg-[var(--app-accent)]/10 border border-[var(--app-accent)]/20 rounded-lg p-2.5 sm:p-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                 <Icon name="search" size="sm" className="text-[var(--app-accent)]" />
-                <span className="text-sm font-medium text-[var(--app-foreground)]">Active Filters</span>
+                <span className="text-xs sm:text-sm font-medium text-[var(--app-foreground)]">Active Filters</span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {localSearchQuery && (
-                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
-                    Search: "{localSearchQuery}"
+                  <span className="px-2 py-0.5 sm:py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full truncate max-w-[140px] sm:max-w-none">
+                    &ldquo;{localSearchQuery}&rdquo;
                   </span>
                 )}
                 {selectedLocation && (
-                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
-                    Location: {selectedLocation}
+                  <span className="px-2 py-0.5 sm:py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full truncate max-w-[120px] sm:max-w-none">
+                    {selectedLocation}
                   </span>
                 )}
                 {selectedTag && (
                   <button
                     onClick={() => setSelectedTag("")}
-                    className="px-2.5 py-1 bg-gradient-to-r from-[var(--app-accent)]/15 to-[var(--app-token-gate)]/15 text-[var(--app-accent)] text-xs rounded-full font-medium inline-flex items-center gap-1.5 hover:from-[var(--app-accent)]/25 hover:to-[var(--app-token-gate)]/25 transition-all border border-[var(--app-accent)]/20"
+                    className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-gradient-to-r from-[var(--app-accent)]/15 to-[var(--app-token-gate)]/15 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full font-medium inline-flex items-center gap-1 sm:gap-1.5 hover:from-[var(--app-accent)]/25 hover:to-[var(--app-token-gate)]/25 transition-all border border-[var(--app-accent)]/20"
                   >
                     <span className="opacity-60">#</span>{selectedTag}
                     <span className="ml-0.5 opacity-60 hover:opacity-100">&times;</span>
@@ -515,7 +515,7 @@ export function EnhancedEventList({
                       onSearchAction("", []);
                     }
                   }}
-                  className="px-2 py-1 bg-red-500/20 text-red-600 text-xs rounded-full hover:bg-red-500/30 transition-colors"
+                  className="px-2 py-0.5 sm:py-1 bg-red-500/20 text-red-600 text-[10px] sm:text-xs rounded-full hover:bg-red-500/30 transition-colors"
                 >
                   Clear All
                 </button>
@@ -527,36 +527,36 @@ export function EnhancedEventList({
       
       {/* Compact Filter Summary (when filters are hidden) */}
       {!showFilters && (selectedLocation || selectedTag || localSearchQuery) && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon name="search" size="sm" className="text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">Filters Applied</span>
-              <div className="flex gap-1">
+        <div className="bg-[var(--app-accent)]/5 border border-[var(--app-accent)]/15 rounded-lg p-2.5 sm:p-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Icon name="search" size="sm" className="text-[var(--app-accent)] flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-[var(--app-foreground)] flex-shrink-0">Filters</span>
+              <div className="flex flex-wrap gap-1 min-w-0">
                 {localSearchQuery && (
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
-                    "{localSearchQuery}"
+                  <span className="px-2 py-0.5 bg-[var(--app-accent)]/10 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full truncate max-w-[120px] sm:max-w-none">
+                    &ldquo;{localSearchQuery}&rdquo;
                   </span>
                 )}
                 {selectedLocation && (
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
-                    📍 {selectedLocation}
+                  <span className="px-2 py-0.5 bg-[var(--app-accent)]/10 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full truncate max-w-[100px] sm:max-w-none">
+                    {selectedLocation}
                   </span>
                 )}
                 {selectedTag && (
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                  <span className="px-2 py-0.5 bg-gradient-to-r from-[var(--app-accent)]/10 to-[var(--app-token-gate)]/10 text-[var(--app-accent)] text-[10px] sm:text-xs rounded-full">
                     #{selectedTag}
                   </span>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-blue-600">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-[10px] sm:text-xs text-[var(--app-accent)]">
                 {filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''}
               </span>
               <button
                 onClick={() => setShowFilters(true)}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="text-[10px] sm:text-xs text-[var(--app-accent)] hover:text-[var(--app-accent)]/80 font-medium"
               >
                 Edit
               </button>

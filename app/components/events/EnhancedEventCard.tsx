@@ -195,6 +195,22 @@ export function EnhancedEventCard({
             </div>
           </div>
 
+          {/* Tags in compact view */}
+          {event.tags && event.tags.length > 0 && (
+            <div className="flex gap-1 overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-hide">
+              {event.tags.slice(0, 2).map(tag => (
+                <span key={tag} className="inline-flex items-center gap-0.5 bg-gradient-to-r from-[var(--app-accent)]/10 to-[var(--app-token-gate)]/10 text-[var(--app-accent)] text-[10px] font-medium px-2 py-0.5 rounded-full border border-[var(--app-accent)]/15 whitespace-nowrap flex-shrink-0">
+                  <span className="opacity-50">#</span>{tag}
+                </span>
+              ))}
+              {event.tags.length > 2 && (
+                <span className="inline-flex items-center text-[10px] font-medium text-[var(--app-foreground-muted)] bg-[var(--app-gray)] px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                  +{event.tags.length - 2}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-sm text-[var(--app-foreground-muted)]">
               <Icon name="users" size="sm" />
@@ -352,24 +368,25 @@ export function EnhancedEventCard({
             </div>
 
             {event.tags && event.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
-                {/* Show 2 tags on mobile, 3 on desktop */}
-                <div className="flex flex-wrap gap-1.5 sm:hidden">
-                  {event.tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="inline-flex items-center gap-1 bg-gradient-to-r from-[var(--app-accent)]/10 to-[var(--app-token-gate)]/10 text-[var(--app-accent)] text-xs font-medium px-2.5 py-1 rounded-full border border-[var(--app-accent)]/15 whitespace-nowrap">
-                      <span className="text-[var(--app-accent)]/60">#</span>{tag}
+              <div className="pt-1">
+                {/* Mobile: horizontal scroll, show all tags compactly */}
+                <div className="flex gap-1 sm:hidden overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-hide">
+                  {event.tags.slice(0, 3).map(tag => (
+                    <span key={tag} className="inline-flex items-center gap-0.5 bg-gradient-to-r from-[var(--app-accent)]/10 to-[var(--app-token-gate)]/10 text-[var(--app-accent)] text-[10px] font-medium px-2 py-0.5 rounded-full border border-[var(--app-accent)]/15 whitespace-nowrap flex-shrink-0">
+                      <span className="opacity-50">#</span>{tag}
                     </span>
                   ))}
-                  {event.tags.length > 2 && (
-                    <span className="inline-flex items-center text-xs font-medium text-[var(--app-foreground-muted)] bg-[var(--app-gray)] px-2 py-1 rounded-full whitespace-nowrap">
-                      +{event.tags.length - 2}
+                  {event.tags.length > 3 && (
+                    <span className="inline-flex items-center text-[10px] font-medium text-[var(--app-foreground-muted)] bg-[var(--app-gray)] px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                      +{event.tags.length - 3}
                     </span>
                   )}
                 </div>
-                <div className="hidden sm:flex flex-wrap gap-2">
+                {/* Desktop: wrap, show 3 tags */}
+                <div className="hidden sm:flex flex-wrap gap-1.5">
                   {event.tags.slice(0, 3).map(tag => (
                     <span key={tag} className="inline-flex items-center gap-1 bg-gradient-to-r from-[var(--app-accent)]/10 to-[var(--app-token-gate)]/10 text-[var(--app-accent)] text-xs font-medium px-2.5 py-1 rounded-full border border-[var(--app-accent)]/15 whitespace-nowrap">
-                      <span className="text-[var(--app-accent)]/60">#</span>{tag}
+                      <span className="opacity-50">#</span>{tag}
                     </span>
                   ))}
                   {event.tags.length > 3 && (

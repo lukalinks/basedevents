@@ -442,35 +442,34 @@ export function EnhancedEventList({
                 {allTags.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Icon name="star" size="sm" className="text-gray-600" />
+                      <div className="w-6 h-6 bg-[var(--app-accent)]/10 rounded-lg flex items-center justify-center">
+                        <Icon name="tag" size="sm" className="text-[var(--app-accent)]" />
                       </div>
                       <span className="text-sm font-semibold text-[var(--app-foreground)]">Tags</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setSelectedTag("")}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                           selectedTag === "" 
-                            ? "bg-gray-600 text-white shadow-md" 
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
+                            ? "bg-[var(--app-accent)] text-white shadow-md shadow-[var(--app-accent)]/25" 
+                            : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-[var(--app-accent)]/10 hover:text-[var(--app-accent)] border border-transparent hover:border-[var(--app-accent)]/20"
                         }`}
                       >
                         <Icon name="tag" size="sm" />
-                        All Tags
+                        All
                       </button>
                       {allTags.map(tag => (
                         <button
                           key={tag}
                           onClick={() => setSelectedTag(tag)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
                             selectedTag === tag 
-                              ? "bg-gray-600 text-white shadow-md" 
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
+                              ? "bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-token-gate)] text-white shadow-md shadow-[var(--app-accent)]/25" 
+                              : "bg-[var(--app-gray)] text-[var(--app-foreground-muted)] hover:bg-gradient-to-r hover:from-[var(--app-accent)]/10 hover:to-[var(--app-token-gate)]/10 hover:text-[var(--app-accent)] border border-transparent hover:border-[var(--app-accent)]/20"
                           }`}
                         >
-                          <Icon name="star" size="sm" />
-                          #{tag}
+                          <span className="opacity-60">#</span>{tag}
                         </button>
                       ))}
                     </div>
@@ -499,9 +498,13 @@ export function EnhancedEventList({
                   </span>
                 )}
                 {selectedTag && (
-                  <span className="px-2 py-1 bg-[var(--app-accent)]/20 text-[var(--app-accent)] text-xs rounded-full">
-                    Tag: {selectedTag}
-                  </span>
+                  <button
+                    onClick={() => setSelectedTag("")}
+                    className="px-2.5 py-1 bg-gradient-to-r from-[var(--app-accent)]/15 to-[var(--app-token-gate)]/15 text-[var(--app-accent)] text-xs rounded-full font-medium inline-flex items-center gap-1.5 hover:from-[var(--app-accent)]/25 hover:to-[var(--app-token-gate)]/25 transition-all border border-[var(--app-accent)]/20"
+                  >
+                    <span className="opacity-60">#</span>{selectedTag}
+                    <span className="ml-0.5 opacity-60 hover:opacity-100">&times;</span>
+                  </button>
                 )}
                 <button
                   onClick={() => {
